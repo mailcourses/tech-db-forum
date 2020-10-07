@@ -12,7 +12,7 @@ import (
 	"github.com/go-openapi/runtime"
 	"github.com/go-openapi/strfmt"
 
-	"github.com/bozaro/tech-db-forum/generated/models"
+	"github.com/mailcourses/technopark-dbms-forum/generated/models"
 )
 
 // UserGetOneReader is a Reader for the UserGetOne structure.

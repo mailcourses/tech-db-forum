@@ -6,7 +6,7 @@
 
 Таким образом, на входе:
 
- * документация к API;
+ * документация к API в файле ./swagger.yaml;
 
 На выходе:
 
@@ -15,7 +15,7 @@
 ## Документация к API
 Документация к API предоставлена в виде спецификации [OpenAPI](https://ru.wikipedia.org/wiki/OpenAPI_%28%D1%81%D0%BF%D0%B5%D1%86%D0%B8%D1%84%D0%B8%D0%BA%D0%B0%D1%86%D0%B8%D1%8F%29): swagger.yml
 
-Документацию можно читать как собственно в файле swagger.yml, так и через Swagger UI (там же есть возможность поиграться с запросами): https://tech-db-forum.bozaro.ru/
+Документацию можно читать как собственно в файле swagger.yml, так и через Swagger UI (так же есть возможность поиграться с запросами): https://tech-db-forum.bozaro.ru/
 
 ## Требования к проекту
 Проект должен включать в себя все необходимое для разворачивания сервиса в Docker-контейнере.
@@ -29,11 +29,11 @@
 
 Контейнер будет собираться из запускаться командами вида:
 ```
-docker build -t a.navrotskiy https://github.com/bozaro/tech-db-forum-server.git
-docker run -p 5000:5000 --name a.navrotskiy -t a.navrotskiy
+docker build -t <username> https://github.com/mailcourses/technopark-dbms-forum-server.git
+docker run -p 5000:5000 --name <username> -t <username>
 ```
 
-В качестве отправной точки можно посмотреть на примеры реализации более простого API на различных языках программирования: https://github.com/bozaro/tech-db-hello/
+В качестве отправной точки можно посмотреть на примеры реализации более простого API на различных языках программирования: https://github.com/mailcourses/technopark-dbms-init
 
 ## Функциональное тестирование
 Корректность API будет проверяться при помощи автоматического функционального тестирования.
@@ -45,25 +45,18 @@ docker run -p 5000:5000 --name a.navrotskiy -t a.navrotskiy
  * запускается скрипт на Go, который будет проводить тестирование;
  * останавливается Docker-контейнер.
 
-Скомпилированные программы для тестирования можно скачать по ссылкам:
-
- * [darwin_amd64.zip](https://bozaro.github.io/tech-db-forum/darwin_amd64.zip)
- * [linux_amd64.zip](https://bozaro.github.io/tech-db-forum/linux_amd64.zip)
- * [windows_386.zip](https://bozaro.github.io/tech-db-forum/windows_386.zip)
- * [windows_amd64.zip](https://bozaro.github.io/tech-db-forum/windows_amd64.zip)
-
 Для локальной сборки Go-скрипта достаточно выполнить команду:
 ```
-go get -u -v github.com/bozaro/tech-db-forum
-go build github.com/bozaro/tech-db-forum
+go get -u -v github.com/mailcourses/technopark-dbms-forum
+go build github.com/mailcourses/technopark-dbms-forum
 ```
-После этого в текущем каталоге будет создан исполняемый файл `tech-db-forum`.
+После этого в текущем каталоге будет создан исполняемый файл `technopark-dbms-forum`.
 
 ### Запуск функционального тестирования
 
 Для запуска функционального тестирования нужно выполнить команду вида:
 ```
-./tech-db-forum func -u http://localhost:5000/api -r report.html
+./technopark-dbms-forum func -u http://localhost:5000/api -r report.html
 ```
 
 Поддерживаются следующие параметры:

@@ -1,4 +1,4 @@
-module github.com/bozaro/tech-db-forum
+module github.com/mailcourses/technopark-dbms-forum
 
 go 1.14
 

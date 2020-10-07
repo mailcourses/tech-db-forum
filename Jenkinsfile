@@ -11,7 +11,7 @@ pipeline {
     }
 
     environment {
-        PROJ = "github.com/bozaro/tech-db-forum"
+        PROJ = "github.com/mailcourses/technopark-dbms-forum"
     }
 
     stages {
@@ -114,7 +114,7 @@ ghp-import -n target/dist
             steps {
                 withCredentials([[$class: 'StringBinding', credentialsId: 'github_bozaro', variable: 'GITHUB_TOKEN']]) {
                     sh """
-git push -qf https://\${GITHUB_TOKEN}@github.com/bozaro/tech-db-forum.git gh-pages
+git push -qf https://\${GITHUB_TOKEN}@github.com/mailcourses/technopark-dbms-forum.git gh-pages
 """
                 }
             }
@@ -137,7 +137,7 @@ for i in target/dist/*.zip; do
   github-release upload --tag ${params.TAG_NAME} --file \$i --name `basename \$i`
 done
 git tag ${params.TAG_NAME}
-git push -qf https://\${GITHUB_TOKEN}@github.com/bozaro/tech-db-forum.git gh-pages ${params.TAG_NAME}
+git push -qf https://\${GITHUB_TOKEN}@github.com/mailcourses/technopark-dbms-forum.git gh-pages ${params.TAG_NAME}
 """
                 }
             }

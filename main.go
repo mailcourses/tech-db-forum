@@ -18,7 +18,7 @@ import (
 	"github.com/mkideal/cli"
 	"github.com/op/go-logging"
 
-	"github.com/bozaro/tech-db-forum/tests"
+	"github.com/mailcourses/technopark-dbms-forum/tests"
 )
 
 const (
@@ -70,7 +70,7 @@ type CmdCommonT struct {
 }
 
 var root = &cli.Command{
-	Desc: "https://github.com/bozaro/tech-db-forum",
+	Desc: "https://github.com/mailcourses/technopark-dbms-forum",
 	Argv: func() interface{} { return nil },
 	Fn: func(ctx *cli.Context) error {
 		ctx.WriteUsage()

@@ -1,6 +1,6 @@
 package tests
 
-import "github.com/bozaro/tech-db-forum/generated/client"
+import "github.com/mailcourses/technopark-dbms-forum/generated/client"
 import (
 	"hash/crc32"
 	"io"

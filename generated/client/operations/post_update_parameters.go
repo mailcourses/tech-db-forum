@@ -16,7 +16,7 @@ import (
 	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
 
-	"github.com/bozaro/tech-db-forum/generated/models"
+	"github.com/mailcourses/technopark-dbms-forum/generated/models"
 )
 
 // NewPostUpdateParams creates a new PostUpdateParams object

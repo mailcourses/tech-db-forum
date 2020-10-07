@@ -1,8 +1,8 @@
 package tests
 
 import (
-	"github.com/bozaro/tech-db-forum/generated/client"
-	"github.com/bozaro/tech-db-forum/generated/client/operations"
+	"github.com/mailcourses/technopark-dbms-forum/generated/client"
+	"github.com/mailcourses/technopark-dbms-forum/generated/client/operations"
 )
 
 func init() {

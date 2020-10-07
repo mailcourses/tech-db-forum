@@ -2,7 +2,7 @@ package tests
 
 import (
 	"github.com/bozaro/golorem"
-	"github.com/bozaro/tech-db-forum/generated/models"
+	"github.com/mailcourses/technopark-dbms-forum/generated/models"
 	"github.com/go-openapi/strfmt"
 	"math/rand"
 	"time"

@@ -2,7 +2,7 @@ package tests
 
 import (
 	"fmt"
-	"github.com/bozaro/tech-db-forum/generated/models"
+	"github.com/mailcourses/technopark-dbms-forum/generated/models"
 )
 
 type Modify int

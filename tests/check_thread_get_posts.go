@@ -2,9 +2,9 @@ package tests
 
 import (
 	"fmt"
-	"github.com/bozaro/tech-db-forum/generated/client"
-	"github.com/bozaro/tech-db-forum/generated/client/operations"
-	"github.com/bozaro/tech-db-forum/generated/models"
+	"github.com/mailcourses/technopark-dbms-forum/generated/client"
+	"github.com/mailcourses/technopark-dbms-forum/generated/client/operations"
+	"github.com/mailcourses/technopark-dbms-forum/generated/models"
 	"github.com/go-openapi/strfmt"
 	"math/rand"
 	"sort"

@@ -10,7 +10,7 @@ import (
 )
 
 var (
-	Project   = "tech-db-forum"
+	Project   = "technopark-dbms-forum"
 	Version   = "0.3.0"
 	BuildTag  string
 	GitCommit string
@@ -53,7 +53,7 @@ func VersionCheck() (int, error) {
 		return VERSION_LOCAL, nil
 	}
 
-	req, err := http.NewRequest("GET", "https://api.github.com/repos/bozaro/tech-db-forum/git/refs/heads/master", nil)
+	req, err := http.NewRequest("GET", "https://api.github.com/repos/mailcourses/technopark-dbms-forum/git/refs/heads/master", nil)
 	if err != nil {
 		return VERSION_UNKNOWN, err
 	}
