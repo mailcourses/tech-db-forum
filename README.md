@@ -45,6 +45,13 @@ docker run -p 5000:5000 --name <username> -t <username>
  * запускается скрипт на Go, который будет проводить тестирование;
  * останавливается Docker-контейнер.
 
+Скомпилированные программы для тестирования можно скачать по ссылкам:
+
+ * [darwin_amd64.zip](https://bozaro.github.io/tech-db-forum/darwin_amd64.zip)
+ * [linux_amd64.zip](https://bozaro.github.io/tech-db-forum/linux_amd64.zip)
+ * [windows_386.zip](https://bozaro.github.io/tech-db-forum/windows_386.zip)
+ * [windows_amd64.zip](https://bozaro.github.io/tech-db-forum/windows_amd64.zip)
+
 Для локальной сборки Go-скрипта достаточно выполнить команду:
 ```
 go get -u -v github.com/mailcourses/technopark-dbms-forum
