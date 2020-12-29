@@ -6,13 +6,13 @@ info:
     Технопарке Mail.ru (https://park.mail.ru).
   version: "0.1.0"
 schemes:
-- http
-- https
+  - http
+  - https
 basePath: /api
 consumes:
-- application/json
+  - application/json
 produces:
-- application/json
+  - application/json
 paths:
   /forum/create:
     post:
@@ -21,12 +21,12 @@ paths:
         Создание нового форума.
       operationId: forumCreate
       parameters:
-      - name: forum
-        in: body
-        description: Данные форума.
-        required: true
-        schema:
-          $ref: '#/definitions/Forum'
+        - name: forum
+          in: body
+          description: Данные форума.
+          required: true
+          schema:
+            $ref: '#/definitions/Forum'
       responses:
         201:
           description: |
@@ -50,15 +50,15 @@ paths:
       summary: Получение информации о форуме
       description: |
         Получение информации о форуме по его идентификаторе.
-      consumes: []
+      consumes: [ ]
       operationId: forumGetOne
       parameters:
-      - name: slug
-        in: path
-        description: Идентификатор форума.
-        required: true
-        type: string
-        format: identity
+        - name: slug
+          in: path
+          description: Идентификатор форума.
+          required: true
+          type: string
+          format: identity
       responses:
         200:
           description: |
@@ -77,18 +77,18 @@ paths:
         Добавление новой ветки обсуждения на форум.
       operationId: threadCreate
       parameters:
-      - name: slug
-        in: path
-        description: Идентификатор форума.
-        required: true
-        type: string
-        format: identity
-      - name: thread
-        in: body
-        description: Данные ветки обсуждения.
-        required: true
-        schema:
-          $ref: '#/definitions/Thread'
+        - name: slug
+          in: path
+          description: Идентификатор форума.
+          required: true
+          type: string
+          format: identity
+        - name: thread
+          in: body
+          description: Данные ветки обсуждения.
+          required: true
+          schema:
+            $ref: '#/definitions/Thread'
       responses:
         201:
           description: |
@@ -115,35 +115,35 @@ paths:
 
         Пользователи выводятся отсортированные по nickname в порядке возрастания.
         Порядок сотрировки должен соответсвовать побайтовому сравнение в нижнем регистре.
-      consumes: []
+      consumes: [ ]
       operationId: forumGetUsers
       parameters:
-      - name: slug
-        in: path
-        description: Идентификатор форума.
-        required: true
-        type: string
-        format: identity
-      - name: limit
-        in: query
-        type: number
-        format: int32
-        default: 100
-        minimum: 1
-        maximum: 10000
-        description: Максимальное кол-во возвращаемых записей.
-      - name: since
-        in: query
-        type: string
-        format: identity
-        description: |
-          Идентификатор пользователя, с которого будут выводиться пользоватли
-          (пользователь с данным идентификатором в результат не попадает).
-      - name: desc
-        in: query
-        type: boolean
-        description: |
-          Флаг сортировки по убыванию.
+        - name: slug
+          in: path
+          description: Идентификатор форума.
+          required: true
+          type: string
+          format: identity
+        - name: limit
+          in: query
+          type: number
+          format: int32
+          default: 100
+          minimum: 1
+          maximum: 10000
+          description: Максимальное кол-во возвращаемых записей.
+        - name: since
+          in: query
+          type: string
+          format: identity
+          description: |
+            Идентификатор пользователя, с которого будут выводиться пользоватли
+            (пользователь с данным идентификатором в результат не попадает).
+        - name: desc
+          in: query
+          type: boolean
+          description: |
+            Флаг сортировки по убыванию.
       responses:
         200:
           description: |
@@ -162,35 +162,35 @@ paths:
         Получение списка ветвей обсужления данного форума.
 
         Ветви обсуждения выводятся отсортированные по дате создания.
-      consumes: []
+      consumes: [ ]
       operationId: forumGetThreads
       parameters:
-      - name: slug
-        in: path
-        description: Идентификатор форума.
-        required: true
-        type: string
-        format: identity
-      - name: limit
-        in: query
-        type: number
-        format: int32
-        default: 100
-        minimum: 1
-        maximum: 10000
-        description: Максимальное кол-во возвращаемых записей.
-      - name: since
-        in: query
-        type: string
-        format: date-time
-        description: |
-          Дата создания ветви обсуждения, с которой будут выводиться записи
-          (ветвь обсуждения с указанной датой попадает в результат выборки).
-      - name: desc
-        in: query
-        type: boolean
-        description: |
-          Флаг сортировки по убыванию.
+        - name: slug
+          in: path
+          description: Идентификатор форума.
+          required: true
+          type: string
+          format: identity
+        - name: limit
+          in: query
+          type: number
+          format: int32
+          default: 100
+          minimum: 1
+          maximum: 10000
+          description: Максимальное кол-во возвращаемых записей.
+        - name: since
+          in: query
+          type: string
+          format: date-time
+          description: |
+            Дата создания ветви обсуждения, с которой будут выводиться записи
+            (ветвь обсуждения с указанной датой попадает в результат выборки).
+        - name: desc
+          in: query
+          type: boolean
+          description: |
+            Флаг сортировки по убыванию.
       responses:
         200:
           description: |
@@ -207,29 +207,29 @@ paths:
       summary: Получение информации о ветке обсуждения
       description: |
         Получение информации о ветке обсуждения по его имени.
-      consumes: []
+      consumes: [ ]
       operationId: postGetOne
       parameters:
-      - name: id
-        in: path
-        description: Идентификатор сообщения.
-        required: true
-        type: number
-        format: int64
-      - name: related
-        in: query
-        type: array
-        description: |
-          Включение полной информации о соответвующем объекте сообщения.
+        - name: id
+          in: path
+          description: Идентификатор сообщения.
+          required: true
+          type: number
+          format: int64
+        - name: related
+          in: query
+          type: array
+          description: |
+            Включение полной информации о соответвующем объекте сообщения.
 
-          Если тип объекта не указан, то полная информация об этих объектах не
-          передаётся.
-        items:
-          type: string
-          enum:
-          - user
-          - forum
-          - thread
+            Если тип объекта не указан, то полная информация об этих объектах не
+            передаётся.
+          items:
+            type: string
+            enum:
+              - user
+              - forum
+              - thread
       responses:
         200:
           description: |
@@ -249,18 +249,18 @@ paths:
         Если сообщение поменяло текст, то оно должно получить отметку `isEdited`.
       operationId: postUpdate
       parameters:
-      - name: id
-        in: path
-        description: Идентификатор сообщения.
-        required: true
-        type: number
-        format: int64
-      - name: post
-        in: body
-        description: Изменения сообщения.
-        required: true
-        schema:
-          $ref: '#/definitions/PostUpdate'
+        - name: id
+          in: path
+          description: Идентификатор сообщения.
+          required: true
+          type: number
+          format: int64
+        - name: post
+          in: body
+          description: Изменения сообщения.
+          required: true
+          schema:
+            $ref: '#/definitions/PostUpdate'
       responses:
         200:
           description: |
@@ -275,8 +275,8 @@ paths:
   /service/clear:
     post:
       consumes:
-      - application/json
-      - application/octet-stream
+        - application/json
+        - application/octet-stream
       summary: Очистка всех данных в базе
       description: |
         Безвозвратное удаление всей пользовательской информации из базы данных.
@@ -289,7 +289,7 @@ paths:
       summary: Получение инфомарции о базе данных
       description: |
         Получение инфомарции о базе данных.
-      consumes: []
+      consumes: [ ]
       operationId: status
       responses:
         200:
@@ -306,18 +306,18 @@ paths:
         Все посты, созданные в рамках одного вызова данного метода должны иметь одинаковую дату создания (Post.Created).
       operationId: postsCreate
       parameters:
-      - name: slug_or_id
-        in: path
-        description: Идентификатор ветки обсуждения.
-        required: true
-        type: string
-        format: identity
-      - name: posts
-        in: body
-        description: Список создаваемых постов.
-        required: true
-        schema:
-          $ref: '#/definitions/Posts'
+        - name: slug_or_id
+          in: path
+          description: Идентификатор ветки обсуждения.
+          required: true
+          type: string
+          format: identity
+        - name: posts
+          in: body
+          description: Список создаваемых постов.
+          required: true
+          schema:
+            $ref: '#/definitions/Posts'
       responses:
         201:
           description: |
@@ -340,14 +340,14 @@ paths:
       summary: Получение информации о ветке обсуждения
       description: |
         Получение информации о ветке обсуждения по его имени.
-      consumes: []
+      consumes: [ ]
       operationId: threadGetOne
       parameters:
-      - name: slug_or_id
-        in: path
-        description: Идентификатор ветки обсуждения.
-        required: true
-        type: string
+        - name: slug_or_id
+          in: path
+          description: Идентификатор ветки обсуждения.
+          required: true
+          type: string
       responses:
         200:
           description: |
@@ -365,18 +365,18 @@ paths:
         Обновление ветки обсуждения на форуме.
       operationId: threadUpdate
       parameters:
-      - name: slug_or_id
-        in: path
-        description: Идентификатор ветки обсуждения.
-        required: true
-        type: string
-        format: identity
-      - name: thread
-        in: body
-        description: Данные ветки обсуждения.
-        required: true
-        schema:
-          $ref: '#/definitions/ThreadUpdate'
+        - name: slug_or_id
+          in: path
+          description: Идентификатор ветки обсуждения.
+          required: true
+          type: string
+          format: identity
+        - name: thread
+          in: body
+          description: Данные ветки обсуждения.
+          required: true
+          schema:
+            $ref: '#/definitions/ThreadUpdate'
       responses:
         200:
           description: |
@@ -395,54 +395,54 @@ paths:
         Получение списка сообщений в данной ветке форуме.
 
         Сообщения выводятся отсортированные по дате создания.
-      consumes: []
+      consumes: [ ]
       operationId: threadGetPosts
       parameters:
-      - name: slug_or_id
-        in: path
-        description: Идентификатор ветки обсуждения.
-        required: true
-        type: string
-        format: identity
-      - name: limit
-        in: query
-        type: number
-        format: int32
-        default: 100
-        minimum: 1
-        maximum: 10000
-        description: Максимальное кол-во возвращаемых записей.
-      - name: since
-        in: query
-        type: number
-        format: int64
-        description: |
-          Идентификатор поста, после которого будут выводиться записи
-          (пост с данным идентификатором в результат не попадает).
-      - name: sort
-        in: query
-        type: string
-        description: |
-          Вид сортировки:
+        - name: slug_or_id
+          in: path
+          description: Идентификатор ветки обсуждения.
+          required: true
+          type: string
+          format: identity
+        - name: limit
+          in: query
+          type: number
+          format: int32
+          default: 100
+          minimum: 1
+          maximum: 10000
+          description: Максимальное кол-во возвращаемых записей.
+        - name: since
+          in: query
+          type: number
+          format: int64
+          description: |
+            Идентификатор поста, после которого будут выводиться записи
+            (пост с данным идентификатором в результат не попадает).
+        - name: sort
+          in: query
+          type: string
+          description: |
+            Вид сортировки:
 
-           * flat - по дате, комментарии выводятся простым списком в порядке создания;
-           * tree - древовидный, комментарии выводятся отсортированные в дереве
-             по N штук;
-           * parent_tree - древовидные с пагинацией по родительским (parent_tree),
-             на странице N родительских комментов и все комментарии прикрепленные
-             к ним, в древвидном отображение.
+             * flat - по дате, комментарии выводятся простым списком в порядке создания;
+             * tree - древовидный, комментарии выводятся отсортированные в дереве
+               по N штук;
+             * parent_tree - древовидные с пагинацией по родительским (parent_tree),
+               на странице N родительских комментов и все комментарии прикрепленные
+               к ним, в древвидном отображение.
 
-          Подробности: https://park.mail.ru/blog/topic/view/1191/
-        default: flat
-        enum:
-        - flat
-        - tree
-        - parent_tree
-      - name: desc
-        in: query
-        type: boolean
-        description: |
-          Флаг сортировки по убыванию.
+            Подробности: https://park.mail.ru/blog/topic/view/1191/
+          default: flat
+          enum:
+            - flat
+            - tree
+            - parent_tree
+        - name: desc
+          in: query
+          type: boolean
+          description: |
+            Флаг сортировки по убыванию.
       responses:
         200:
           description: |
@@ -464,18 +464,18 @@ paths:
         мнение.
       operationId: threadVote
       parameters:
-      - name: slug_or_id
-        in: path
-        description: Идентификатор ветки обсуждения.
-        required: true
-        type: string
-        format: identity
-      - name: vote
-        in: body
-        description: Информация о голосовании пользователя.
-        required: true
-        schema:
-          $ref: '#/definitions/Vote'
+        - name: slug_or_id
+          in: path
+          description: Идентификатор ветки обсуждения.
+          required: true
+          type: string
+          format: identity
+        - name: vote
+          in: body
+          description: Информация о голосовании пользователя.
+          required: true
+          schema:
+            $ref: '#/definitions/Vote'
       responses:
         200:
           description: |
@@ -494,17 +494,17 @@ paths:
         Создание нового пользователя в базе данных.
       operationId: userCreate
       parameters:
-      - name: nickname
-        in: path
-        description: Идентификатор пользователя.
-        required: true
-        type: string
-      - name: profile
-        in: body
-        description: Данные пользовательского профиля.
-        required: true
-        schema:
-          $ref: '#/definitions/User'
+        - name: nickname
+          in: path
+          description: Идентификатор пользователя.
+          required: true
+          type: string
+        - name: profile
+          in: body
+          description: Данные пользовательского профиля.
+          required: true
+          schema:
+            $ref: '#/definitions/User'
       responses:
         201:
           description: |
@@ -523,14 +523,14 @@ paths:
       summary: Получение информации о пользователе
       description: |
         Получение информации о пользователе форума по его имени.
-      consumes: []
+      consumes: [ ]
       operationId: userGetOne
       parameters:
-      - name: nickname
-        in: path
-        description: Идентификатор пользователя.
-        required: true
-        type: string
+        - name: nickname
+          in: path
+          description: Идентификатор пользователя.
+          required: true
+          type: string
       responses:
         200:
           description: |
@@ -548,17 +548,17 @@ paths:
         Изменение информации в профиле пользователя.
       operationId: userUpdate
       parameters:
-      - name: nickname
-        in: path
-        description: Идентификатор пользователя.
-        required: true
-        type: string
-      - name: profile
-        in: body
-        description: Изменения профиля пользователя.
-        required: true
-        schema:
-          $ref: '#/definitions/UserUpdate'
+        - name: nickname
+          in: path
+          description: Идентификатор пользователя.
+          required: true
+          type: string
+        - name: profile
+          in: body
+          description: Изменения профиля пользователя.
+          required: true
+          schema:
+            $ref: '#/definitions/UserUpdate'
       responses:
         200:
           description: |
@@ -615,10 +615,10 @@ definitions:
         example: 1000000
         x-isnullable: false
     required:
-    - user
-    - forum
-    - thread
-    - post
+      - user
+      - forum
+      - thread
+      - post
   User:
     description: |
       Информация о пользователе.
@@ -650,8 +650,8 @@ definitions:
         example: captaina@blackpearl.sea
         x-isnullable: false
     required:
-    - fullname
-    - email
+      - fullname
+      - email
   Users:
     type: array
     items:
@@ -713,9 +713,9 @@ definitions:
           Общее кол-во ветвей обсуждения в данном форуме.
         example: 200
     required:
-    - title
-    - user
-    - slug
+      - title
+      - user
+      - slug
   Thread:
     description: |
       Ветка обсуждения на форуме.
@@ -771,9 +771,9 @@ definitions:
         example: 2017-01-01T00:00:00.000Z
         x-isnullable: true
     required:
-    - title
-    - author
-    - message
+      - title
+      - author
+      - message
   Threads:
     type: array
     items:
@@ -842,8 +842,8 @@ definitions:
         readOnly: true
         x-isnullable: true
     required:
-    - author
-    - message
+      - author
+      - message
   Posts:
     type: array
     items:
@@ -887,9 +887,9 @@ definitions:
         format: int32
         description: Отданный голос.
         enum:
-        - -1
-        - 1
+          - -1
+          - 1
         x-isnullable: false
     required:
-    - nickname
-    - voice
+      - nickname
+      - voice

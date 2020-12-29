@@ -6,10 +6,10 @@ package client
 // Editing this file might prove futile when you re-run the swagger generate command
 
 import (
-	"github.com/mailcourses/technopark-dbms-forum/generated/client/operations"
 	"github.com/go-openapi/runtime"
 	httptransport "github.com/go-openapi/runtime/client"
 	"github.com/go-openapi/strfmt"
+	"github.com/mailcourses/technopark-dbms-forum/generated/client/operations"
 )
 
 // Default forum HTTP client.

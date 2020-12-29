@@ -63,9 +63,11 @@ func (self *Factory) RandomForum() *models.Forum {
 		Title: self.lorem.Sentence(1, 10),
 	}
 }
+
 func (self *Factory) RandomSlug() string {
 	return slug_id.Generate()
 }
+
 func (self *Factory) RandomThread() *models.Thread {
 	created := strfmt.DateTime(RandomTime())
 	return &models.Thread{

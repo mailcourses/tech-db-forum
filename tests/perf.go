@@ -122,6 +122,7 @@ func (self *Perf) Load(reader io.Reader) error {
 	self.data, err = LoadPerfData(reader)
 	return err
 }
+
 func (self *Perf) Save(writer io.Writer) error {
 	return self.data.Save(writer)
 }
