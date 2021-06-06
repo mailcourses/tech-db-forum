@@ -54,7 +54,7 @@ docker run -p 5000:5000 --name <username> -t <username>
 
 Для локальной сборки Go-скрипта достаточно выполнить команду:
 ```
-go get -u -v github.com/mailcourses/technopark-dbms-forum
+go get -u -v github.com/mailcourses/technopark-dbms-forum@master
 go build github.com/mailcourses/technopark-dbms-forum
 ```
 После этого в текущем каталоге будет создан исполняемый файл `technopark-dbms-forum`.
