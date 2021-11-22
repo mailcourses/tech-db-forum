@@ -33,8 +33,6 @@ docker build -t <username> https://github.com/mailcourses/technopark-dbms-forum-
 docker run -p 5000:5000 --name <username> -t <username>
 ```
 
-В качестве отправной точки можно посмотреть на примеры реализации более простого API на различных языках программирования: https://github.com/mailcourses/technopark-dbms-init
-
 ## Функциональное тестирование
 Корректность API будет проверяться при помощи автоматического функционального тестирования.
 
@@ -45,14 +43,7 @@ docker run -p 5000:5000 --name <username> -t <username>
  * запускается скрипт на Go, который будет проводить тестирование;
  * останавливается Docker-контейнер.
 
-Скомпилированные программы для тестирования можно скачать по ссылкам:
-
- * [darwin_amd64.zip](https://bozaro.github.io/tech-db-forum/darwin_amd64.zip)
- * [linux_amd64.zip](https://bozaro.github.io/tech-db-forum/linux_amd64.zip)
- * [windows_386.zip](https://bozaro.github.io/tech-db-forum/windows_386.zip)
- * [windows_amd64.zip](https://bozaro.github.io/tech-db-forum/windows_amd64.zip)
-
-Для локальной сборки Go-скрипта достаточно выполнить команду:
+Для локальной сборки Go-скрипта необходимо выполнить команду:
 ```
 go get -u -v github.com/mailcourses/technopark-dbms-forum@master
 go build github.com/mailcourses/technopark-dbms-forum
@@ -87,5 +78,5 @@ go build github.com/mailcourses/technopark-dbms-forum
 ./technopark-dbms-forum perf --url=http://localhost:5000/api --duration=600 --step=60
 ```
 Параметры в примере означают:
-- На заполнение базы дается не более 15-ти минут;
+- Лимит времени на заполнение базы - 15-ти минут;
 - Нагрузка идёт 10 раз в течение 1-ой минуты. Учитывается лучший результат.
