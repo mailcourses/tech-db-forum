@@ -1,0 +1,31 @@
+version: "3.5"
+services:
+  go:
+    container_name: golang
+    image: mausved/air_swag
+    working_dir: /var/www/db
+    environment:
+      - dsn=user=user password=pass dbname=db host=postgres port=5432 sslmode=disable
+      - port=5000
+      - dbType=postgres
+    depends_on:
+      - db
+    ports:
+      - "5000:5000"
+    restart: always
+    volumes:
+      - ../../:/var/www/db/
+      - .air.toml:/var/www/db/.air.toml
+
+  db:
+    container_name: postgres
+    image: postgres
+    volumes:
+      - ../../db/:/docker-entrypoint-initdb.d/
+    environment:
+      - POSTGRES_USER=user
+      - POSTGRES_PASSWORD=pass
+      - POSTGRES_DB=db
+    restart: always
+    ports:
+      - "5432:5432"

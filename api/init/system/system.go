@@ -1,0 +1,42 @@
+package system
+
+import (
+	"github.com/labstack/echo/v4"
+	"github.com/mailcourses/technopark-dbms-forum/api/init/router"
+	"github.com/mailcourses/technopark-dbms-forum/api/internal"
+	"github.com/mailcourses/technopark-dbms-forum/api/internal/forum/delivery/forumHttp"
+	"github.com/mailcourses/technopark-dbms-forum/api/internal/forum/repository/forumPostgres"
+	"github.com/mailcourses/technopark-dbms-forum/api/internal/forum/useCase"
+	"github.com/mailcourses/technopark-dbms-forum/api/internal/user/delivery/userHttp"
+	"github.com/mailcourses/technopark-dbms-forum/api/internal/user/repository/userPostgres"
+	"github.com/mailcourses/technopark-dbms-forum/api/internal/user/useCase"
+)
+
+func InitApi(e *echo.Echo, sqlxes internal.SqlxContainer) error {
+	repos := InitRepos(sqlxes)
+	useCases := InitUseCases(repos)
+	handlers := InitHandlers(useCases)
+
+	return router.SetRoutes(e, handlers)
+}
+
+func InitRepos(databases internal.SqlxContainer) internal.ReposContainer {
+	return internal.ReposContainer{
+		ForumRepo: forumPostgres.NewForumRepo(databases.ForumSqlx),
+		UserRepo:  userPostgres.NewUserRepo(databases.UserSqlx),
+	}
+}
+
+func InitUseCases(repos internal.ReposContainer) internal.UseCasesContainer {
+	return internal.UseCasesContainer{
+		ForumUseCase: forumUseCase.NewForumUseCase(repos.ForumRepo, repos.UserRepo),
+		UserUseCase:  userUseCase.NewUserUseCase(repos.UserRepo),
+	}
+}
+
+func InitHandlers(useCases internal.UseCasesContainer) internal.HandlersContainer {
+	return internal.HandlersContainer{
+		ForumHandler: forumHttp.NewForumHandler(useCases.ForumUseCase, useCases.UserUseCase),
+		UserHandler:  userHttp.NewUserHandler(useCases.UserUseCase),
+	}
+}
