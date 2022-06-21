@@ -36,8 +36,11 @@ func main() {
 	}
 
 	sqlxes := internal.SqlxContainer{
-		ForumSqlx: sqlx,
-		UserSqlx:  sqlx,
+		ForumSqlx:   sqlx,
+		UserSqlx:    sqlx,
+		ThreadSqlx:  sqlx,
+		PostSqlx:    sqlx,
+		ServiceSqlx: sqlx,
 	}
 
 	if err := system.InitApi(e, sqlxes); err != nil {

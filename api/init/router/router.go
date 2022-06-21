@@ -4,15 +4,18 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/mailcourses/technopark-dbms-forum/api/internal"
 	"github.com/mailcourses/technopark-dbms-forum/api/internal/forum/delivery/forumHttp"
+	"github.com/mailcourses/technopark-dbms-forum/api/internal/post/delivery/postHttp"
+	"github.com/mailcourses/technopark-dbms-forum/api/internal/service/delivery/serviceHttp"
+	"github.com/mailcourses/technopark-dbms-forum/api/internal/thread/delivery/threadHttp"
 	"github.com/mailcourses/technopark-dbms-forum/api/internal/user/delivery/userHttp"
 	_ "github.com/mailcourses/technopark-dbms-forum/docs"
 	"github.com/swaggo/echo-swagger"
 )
 
 const (
-	all = "*"
-
+	all           = "*"
 	locate        = "/"
+	apiPrefix     = "/api"
 	forumPrefix   = "/forum"
 	postPrefix    = "/post"
 	postsPrefix   = "/posts"
@@ -23,7 +26,7 @@ const (
 	usersPrefix   = "/users"
 	createPrefix  = "/create"
 	detailsPrefix = "/details"
-	clearPrefix   = "/status"
+	clearPrefix   = "/clear"
 	statusPrefix  = "/status"
 	profilePrefix = "/profile"
 	votePrefix    = "/vote"
@@ -36,52 +39,53 @@ const (
 )
 
 func SetRoutes(e *echo.Echo, handlers internal.HandlersContainer) error {
+	api := e.Group(apiPrefix)
 
-	forum := e.Group(forumPrefix)
-	setForumRoutes(forum, handlers.ForumHandler)
+	forum := api.Group(forumPrefix)
+	setForumRoutes(forum, handlers.ForumHandler, handlers.ThreadHandler)
 
-	post := e.Group(postPrefix)
-	setPostRoutes(post)
+	post := api.Group(postPrefix)
+	setPostRoutes(post, handlers.PostHandler)
 
-	service := e.Group(servicePrefix)
-	setServiceRoutes(service)
+	service := api.Group(servicePrefix)
+	setServiceRoutes(service, handlers.ServiceHandler)
 
-	thread := e.Group(threadPrefix)
-	setThreadRoutes(thread)
+	thread := api.Group(threadPrefix)
+	setThreadRoutes(thread, handlers.PostHandler, handlers.ThreadHandler)
 
-	user := e.Group(userPrefix)
+	user := api.Group(userPrefix)
 	setUserRoutes(user, handlers.UserHandler)
 
-	docs := e.Group(docsPrefix)
+	docs := api.Group(docsPrefix)
 	setDocsRoutes(docs)
 
 	return nil
 }
 
-func setForumRoutes(forum *echo.Group, handler forumHttp.ForumHandler) {
-	forum.POST(createPrefix, handler.Create)
-	forum.GET(slugEchoPattern+detailsPrefix, handler.Details)
-	forum.POST(slugEchoPattern+createPrefix, nil)
-	forum.GET(slugEchoPattern+usersPrefix, nil)
-	forum.GET(slugEchoPattern+threadsPrefix, nil)
+func setForumRoutes(forum *echo.Group, forumHandler forumHttp.ForumHandler, threadHandler threadHttp.ThreadHandler) {
+	forum.POST(createPrefix, forumHandler.Create)
+	forum.GET(slugEchoPattern+detailsPrefix, forumHandler.Details)
+	forum.POST(slugEchoPattern+createPrefix, threadHandler.Create)
+	forum.GET(slugEchoPattern+usersPrefix, forumHandler.Users)
+	forum.GET(slugEchoPattern+threadsPrefix, threadHandler.GetThreadsOnForum)
 }
 
-func setPostRoutes(post *echo.Group) {
-	post.GET(idEchoPattern+detailsPrefix, nil)
-	post.POST(idEchoPattern+detailsPrefix, nil)
+func setPostRoutes(post *echo.Group, handler postHttp.PostHandler) {
+	post.GET(idEchoPattern+detailsPrefix, handler.SelectById)
+	post.POST(idEchoPattern+detailsPrefix, handler.UpdateMsg)
 }
 
-func setServiceRoutes(service *echo.Group) {
-	service.POST(clearPrefix, nil)
-	service.GET(statusPrefix, nil)
+func setServiceRoutes(service *echo.Group, handler serviceHttp.ServiceHandler) {
+	service.POST(clearPrefix, handler.Clear)
+	service.GET(statusPrefix, handler.Status)
 }
 
-func setThreadRoutes(thread *echo.Group) {
-	thread.POST(slugOrIdEchoPattern+createPrefix, nil)
-	thread.GET(slugOrIdEchoPattern+detailsPrefix, nil)
-	thread.POST(slugOrIdEchoPattern+detailsPrefix, nil)
-	thread.GET(slugOrIdEchoPattern+postsPrefix, nil)
-	thread.POST(slugOrIdEchoPattern+votePrefix, nil)
+func setThreadRoutes(thread *echo.Group, postHandler postHttp.PostHandler, threadHandler threadHttp.ThreadHandler) {
+	thread.POST(slugOrIdEchoPattern+createPrefix, postHandler.CreatePosts)
+	thread.GET(slugOrIdEchoPattern+detailsPrefix, threadHandler.GetDetails)
+	thread.POST(slugOrIdEchoPattern+detailsPrefix, threadHandler.ThreadUpdate)
+	thread.GET(slugOrIdEchoPattern+postsPrefix, threadHandler.GetPosts)
+	thread.POST(slugOrIdEchoPattern+votePrefix, threadHandler.ThreadVote)
 }
 
 func setUserRoutes(user *echo.Group, handler userHttp.UserHandler) {

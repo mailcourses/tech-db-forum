@@ -17,7 +17,7 @@ func InitPostgres(dsnEnv string) (*sqlx.DB, error) {
 		return nil, err
 	}
 
-	db.SetMaxOpenConns(10)
+	db.SetMaxOpenConns(100)
 
 	sqlxDb := sqlx.NewDb(db, "pgx")
 	err = sqlxDb.Ping()

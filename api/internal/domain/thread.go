@@ -1,28 +1,26 @@
 package domain
 
+import "time"
+
 type Thread struct {
-	Id             int64  `json:"id" readonly:"true" example:"42" db:"id"`
-	Title          string `json:"title" example:"Davy Jones cache" db:"title"`
-	AuthorNickname string `json:"userNickname" example:"j.sparrow" db:"user_nickname"`
-	ForumTitle     string `json:"forumTitle" example:"pirate-stories" db:"forum_title"`
-	Message        string `json:"message" example:"An urgent need to reveal the hiding place of Davy Jones. Who is willing to help in this matter?"  db:"message"`
-	Votes          int32  `json:"votes" db:"votes"`
-	Slug           string `json:"slug" example:"jones-cache" db:"slug"`
-	Created        int64  `json:"created" db:"created"`
+	Id      int64     `json:"id,omitempty" example:"1" db:"id"`
+	Title   string    `json:"title,omitempty" example:"Davy Jones cache" db:"title"`
+	Author  string    `json:"author,omitempty" example:"j.sparrow" db:"user_nickname"`
+	Forum   string    `json:"forum,omitempty" example:"pirate-stories" db:"forum"`
+	Message string    `json:"message,omitempty" example:"An urgent need to reveal the hiding place of Davy Jones. Who is willing to help in this matter?"  db:"message"`
+	Votes   int32     `json:"votes,omitempty" db:"votes"`
+	Slug    string    `json:"slug,omitempty" example:"jones-cache" db:"slug"`
+	Created time.Time `json:"created,omitempty" db:"created"`
 }
 
-type ThreadDto struct {
-	Id      int64  `json:"id" readonly:"true" example:"42" db:"id"`
-	Title   string `json:"title" example:"Davy Jones cache"`
-	Author  string `json:"author" example:"j.sparrow"`
-	Forum   string `json:"forum" example:"pirate-stories"`
-	Message string `json:"message" example:"An urgent need to reveal the hiding place of Davy Jones. Who is willing to help in this matter?"`
-	Votes   int32  `json:"votes" db:"votes"`
-	Slug    string `json:"slug" example:"jones-cache"`
-	Created int64  `json:"created"`
+type ThreadRequest struct {
+	Title   string    `json:"title,omitempty" example:"Davy Jones cache"`
+	Author  string    `json:"author,omitempty" example:"j.sparrow"`
+	Message string    `json:"message,omitempty" example:"An urgent need to reveal the hiding place of Davy Jones. Who is willing to help in this matter?"`
+	Created time.Time `json:"created,omitempty"`
 }
 
 type ThreadUpdate struct {
-	Title   string `json:"title" example:"Davy Jones cache"  db:"title"`
-	Message string `json:"message" example:"An urgent need to reveal the hiding place of Davy Jones. Who is willing to help in this matter?"  db:"message"`
+	Title   string `json:"title,omitempty" example:"Davy Jones cache"  db:"title"`
+	Message string `json:"message,omitempty" example:"An urgent need to reveal the hiding place of Davy Jones. Who is willing to help in this matter?"  db:"message"`
 }

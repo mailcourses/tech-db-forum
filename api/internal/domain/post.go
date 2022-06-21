@@ -1,14 +1,16 @@
 package domain
 
+import "time"
+
 type Post struct {
-	Id       int64  `json:"id" readonly:"true" example:"42" db:"id"`
-	Parent   int64  `json:"parent" db:"parent"`
-	Author   string `json:"author" example:"j.sparrow" db:"author"`
-	Message  string `json:"message" example:"We should be afraid of the Kraken." db:"message"`
-	IsEdited bool   `json:"isEdited" db:"isEdited"`
-	Forum    string `json:"forum" example:"pirate-stories" db:"forum"`
-	Thread   int32  `json:"thread" db:"thread"`
-	Created  int64  `json:"created" db:"created"`
+	Id       int64     `json:"id,omitempty" db:"id"`
+	Parent   int64     `json:"parent,omitempty" db:"parent"`
+	Author   string    `json:"author,omitempty" example:"j.sparrow" db:"author"`
+	Message  string    `json:"message,omitempty" example:"We should be afraid of the Kraken." db:"message"`
+	IsEdited bool      `json:"isEdited,omitempty" example:"false" db:"is_edited"`
+	Forum    string    `json:"forum,omitempty" example:"pirate-stories" db:"forum"`
+	Thread   int32     `json:"thread,omitempty" db:"thread"`
+	Created  time.Time `json:"created,omitempty" db:"created"`
 }
 
 type PostUpdate struct {
@@ -16,8 +18,14 @@ type PostUpdate struct {
 }
 
 type PostFull struct {
-	Post   Post
-	Author User
-	Thread Thread
-	Forum  Forum
+	Post   *Post   `json:"post"`
+	Author *User   `json:"author,omitempty"`
+	Thread *Thread `json:"thread,omitempty"`
+	Forum  *Forum  `json:"forum,omitempty"`
+}
+
+type PostParams struct {
+	User   bool
+	Forum  bool
+	Thread bool
 }

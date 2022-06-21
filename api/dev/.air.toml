@@ -7,7 +7,7 @@ tmp_dir = "tmp"
 
 [build]
 # Just plain old shell command. You could use `make` as well.
-cmd = "swag init -g api/cmd/main.go --parseDependency && go build -o ./tmp/db api/cmd/main.go"
+cmd = "swag init -g api/cmd/main.go && go build -o ./tmp/db api/cmd/main.go"
 # Binary file yields from `cmd`.
 bin = "tmp/db"
 # Customize binary, can setup environment variables when run your app.
@@ -18,7 +18,7 @@ include_ext = ["go", "yaml","json","js",".sql",".toml"]
 exclude_dir = ["assets", "tmp", "vendor", "frontend/node_modules", "database"]
 # Watch these directories if you specified.
 # Exclude files.
-exclude_file = ["docs/docs.go"]
+exclude_file = ["docs/docs.go", "docs/swagger.json"]
 # Exclude unchanged files.
 exclude_unchanged = true
 # Follow symlink for directories
