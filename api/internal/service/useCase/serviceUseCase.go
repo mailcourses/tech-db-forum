@@ -6,7 +6,7 @@ import (
 
 type ServiceUseCase interface {
 	Clear() error
-	Status() (*domain.Stat, error)
+	Status() (*domain.Status, error)
 }
 
 type serviceUseCase struct {
@@ -23,7 +23,7 @@ func (useCase serviceUseCase) Clear() error {
 	return useCase.ServiceRepo.Clear()
 }
 
-func (useCase serviceUseCase) Status() (*domain.Stat, error) {
+func (useCase serviceUseCase) Status() (*domain.Status, error) {
 	stat, err := useCase.ServiceRepo.Status()
 	if err != nil {
 		return nil, err

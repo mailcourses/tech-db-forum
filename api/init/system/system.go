@@ -21,7 +21,7 @@ import (
 	"github.com/mailcourses/technopark-dbms-forum/api/internal/user/useCase"
 )
 
-func InitApi(e *echo.Echo, sqlxes internal.SqlxContainer) error {
+func InitApi(e *echo.Echo, sqlxes internal.PgxPoolContainer) error {
 	repos := InitRepos(sqlxes)
 	useCases := InitUseCases(repos)
 	handlers := InitHandlers(useCases)
@@ -29,14 +29,14 @@ func InitApi(e *echo.Echo, sqlxes internal.SqlxContainer) error {
 	return router.SetRoutes(e, handlers)
 }
 
-func InitRepos(databases internal.SqlxContainer) internal.ReposContainer {
+func InitRepos(databases internal.PgxPoolContainer) internal.ReposContainer {
 	return internal.ReposContainer{
-		ForumRepo:  forumPostgres.NewForumRepo(databases.ForumSqlx),
-		UserRepo:   userPostgres.NewUserRepo(databases.UserSqlx),
-		ThreadRepo: threadPostgres.NewThreadRepo(databases.ThreadSqlx),
-		PostRepo:   postPostgres.NewPostRepo(databases.PostSqlx),
+		ForumRepo:  forumPostgres.NewForumRepo(databases.ForumPool),
+		UserRepo:   userPostgres.NewUserRepo(databases.UserPool),
+		ThreadRepo: threadPostgres.NewThreadRepo(databases.ThreadPool),
+		PostRepo:   postPostgres.NewPostRepo(databases.PostPool),
 		ServiceRepo: servicePostgres.NewServiceRepo(
-			databases.ServiceSqlx,
+			databases.ServicePool,
 		),
 	}
 }

@@ -1,7 +1,7 @@
 package internal
 
 import (
-	"github.com/jmoiron/sqlx"
+	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/mailcourses/technopark-dbms-forum/api/internal/domain"
 	"github.com/mailcourses/technopark-dbms-forum/api/internal/forum/delivery/forumHttp"
 	forumUseCase "github.com/mailcourses/technopark-dbms-forum/api/internal/forum/useCase"
@@ -15,12 +15,12 @@ import (
 	userUseCase "github.com/mailcourses/technopark-dbms-forum/api/internal/user/useCase"
 )
 
-type SqlxContainer struct {
-	ForumSqlx   *sqlx.DB
-	UserSqlx    *sqlx.DB
-	ThreadSqlx  *sqlx.DB
-	PostSqlx    *sqlx.DB
-	ServiceSqlx *sqlx.DB
+type PgxPoolContainer struct {
+	ForumPool   *pgxpool.Pool
+	UserPool    *pgxpool.Pool
+	ThreadPool  *pgxpool.Pool
+	PostPool    *pgxpool.Pool
+	ServicePool *pgxpool.Pool
 }
 
 type ReposContainer struct {

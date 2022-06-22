@@ -1,7 +1,6 @@
 package userHttp
 
 import (
-	"github.com/go-openapi/swag"
 	"github.com/labstack/echo/v4"
 	"github.com/mailcourses/technopark-dbms-forum/api/internal/constants"
 	"github.com/mailcourses/technopark-dbms-forum/api/internal/domain"
@@ -50,7 +49,6 @@ func (h userHandler) Create(ctx echo.Context) error {
 	userToCreate.Nickname = nickname
 
 	user, err := h.userUseCase.Create(userToCreate)
-
 	if _, ok := err.(*userErrors.UserErrorConfilct); ok {
 		return ctx.JSON(http.StatusConflict, user)
 	}
@@ -112,46 +110,4 @@ func (h userHandler) UpdateProfile(ctx echo.Context) error {
 	}
 
 	return ctx.JSON(http.StatusOK, *updatedUser)
-}
-
-// GetUsersOnForum godoc
-// @Summary      Пользователи данного форума
-// @Description  Получение списка пользователей, у которых есть пост или ветка обсуждения в данном форуме.
-// @Description Пользователи выводятся отсортированные по nickname в порядке возрастания.
-// @Description Порядок сотрировки должен соответсвовать побайтовому сравнение в нижнем регистре.
-// @Tags         forum
-// @Accept          application/json
-// @Produce      application/json
-// @Param        slug  path      string  true  "Идентификатор форума."
-// @Param        limit  query      int  true  "Максимальное кол-во возвращаемых записей."
-// @Param        since  query      int  true  "Дата создания ветви обсуждения, с которой будут выводиться записи (ветвь обсуждения с указанной датой попадает в результат выборки)."
-// @Param        desc  query      bool  true  "Флаг сортировки по убыванию."
-// @Success      200    {object}  domain.Thread "Информация о пользователях форума"
-// @Failure      404    {object}  tools.Error  "Форум отсутсвует в системе."
-// @Router       /api/forum/{slug}/users [get]
-func (h userHandler) GetUsersOnForum(ctx echo.Context) error {
-	slug := ctx.Param(constants.Slug)
-	since := ctx.Param(constants.Since)
-
-	limit, err := swag.ConvertInt64(ctx.QueryParam(constants.Limit))
-	if err != nil {
-		return tools.WriteErrorEchoServer(ctx, err, http.StatusBadRequest)
-	}
-
-	desc, err := swag.ConvertBool(ctx.QueryParam(constants.Desc))
-	if err != nil {
-		return tools.WriteErrorEchoServer(ctx, err, http.StatusBadRequest)
-	}
-
-	forum, _ := h.forumUseCase.SelectBySlug(slug)
-	if forum == nil {
-		return tools.WriteErrorEchoServer(ctx, CustomErrors.ErrorForumBySlugNotFound(slug), http.StatusNotFound)
-	}
-
-	users, err := h.userUseCase.SelectUsersBySlug(slug, limit, since, desc)
-	if err != nil {
-		return tools.WriteErrorEchoServer(ctx, err, http.StatusBadRequest)
-	}
-
-	return ctx.JSON(http.StatusOK, users)
 }

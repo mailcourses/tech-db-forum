@@ -1,24 +1,24 @@
 package forumPostgres
 
 import (
-	"fmt"
-	"github.com/jmoiron/sqlx"
+	"context"
+	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/mailcourses/technopark-dbms-forum/api/internal/domain"
 	"strings"
 )
 
 type ForumRepo struct {
-	sqlx *sqlx.DB
+	pool *pgxpool.Pool
 }
 
-func NewForumRepo(sqlx *sqlx.DB) domain.ForumRepo {
-	return ForumRepo{sqlx: sqlx}
+func NewForumRepo(pool *pgxpool.Pool) domain.ForumRepo {
+	return ForumRepo{pool: pool}
 }
 
 func (repo ForumRepo) SelectById(id int64) (*domain.Forum, error) {
 	query := `SELECT title, user_nickname, slug, posts, threads FROM Forum WHERE id = $1`
 	holder := domain.Forum{}
-	if err := repo.sqlx.Get(&holder, query, id); err != nil {
+	if err := repo.pool.QueryRow(context.Background(), query, id).Scan(domain.GetForumFields(&holder)...); err != nil {
 		return nil, err
 	}
 	return &holder, nil
@@ -27,7 +27,7 @@ func (repo ForumRepo) SelectById(id int64) (*domain.Forum, error) {
 func (repo ForumRepo) SelectByTitle(title string) (*domain.Forum, error) {
 	query := `SELECT title, user_nickname, slug, posts, threads FROM Forum WHERE title = $1`
 	holder := domain.Forum{}
-	if err := repo.sqlx.Get(&holder, query, title); err != nil {
+	if err := repo.pool.QueryRow(context.Background(), query, title).Scan(domain.GetForumFields(&holder)...); err != nil {
 		return nil, err
 	}
 	return &holder, nil
@@ -36,17 +36,16 @@ func (repo ForumRepo) SelectByTitle(title string) (*domain.Forum, error) {
 func (repo ForumRepo) SelectBySlug(slug string) (*domain.Forum, error) {
 	query := `SELECT title, user_nickname, slug, posts, threads FROM Forum WHERE lower(slug) = $1`
 	holder := domain.Forum{}
-	if err := repo.sqlx.Get(&holder, query, strings.ToLower(slug)); err != nil {
+	if err := repo.pool.QueryRow(context.Background(), query, strings.ToLower(slug)).Scan(domain.GetForumFields(&holder)...); err != nil {
 		return nil, err
 	}
-	fmt.Println("threads=", holder)
 	return &holder, nil
 }
 
 func (repo ForumRepo) SelectByTitleOrSlug(title string, slug string) (*domain.Forum, error) {
 	query := `SELECT title, user_nickname, slug, posts, threads FROM Forum WHERE title = $1 or lower(slug) = $2`
 	holder := domain.Forum{}
-	if err := repo.sqlx.Get(&holder, query, title, strings.ToLower(slug)); err != nil {
+	if err := repo.pool.QueryRow(context.Background(), query, title, strings.ToLower(slug)).Scan(domain.GetForumFields(&holder)...); err != nil {
 		return nil, err
 	}
 	return &holder, nil
@@ -58,12 +57,7 @@ func (repo ForumRepo) Create(forum domain.Forum) (*domain.Forum, error) {
 			  RETURNING title, user_nickname, slug, posts, threads`
 
 	createdForum := domain.Forum{}
-	if err := repo.sqlx.QueryRow(query, forum.Title, forum.User, forum.Slug, forum.Posts, forum.Threads).Scan(
-		&createdForum.Title,
-		&createdForum.User,
-		&createdForum.Slug,
-		&createdForum.Posts,
-		&createdForum.Threads); err != nil {
+	if err := repo.pool.QueryRow(context.Background(), query, forum.Title, forum.User, forum.Slug, forum.Posts, forum.Threads).Scan(domain.GetForumFields(&createdForum)...); err != nil {
 		return nil, err
 	}
 
@@ -114,10 +108,19 @@ func (repo ForumRepo) GetUsers(slug string, limit int64, since string, desc bool
 			  Limit $3;`
 	}
 
-	var users []domain.User
-
-	if err := repo.sqlx.Select(&users, query, params...); err != nil {
+	rows, err := repo.pool.Query(context.Background(), query, params...)
+	if err != nil {
 		return nil, err
+	}
+
+	var users []domain.User
+	for rows.Next() {
+		element := domain.User{}
+		err = rows.Scan(domain.GetUserFields(&element)...)
+		if err != nil {
+			return nil, err
+		}
+		users = append(users, element)
 	}
 
 	return users, nil

@@ -1,18 +1,19 @@
 package userPostgres
 
 import (
-	"github.com/jmoiron/sqlx"
+	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/mailcourses/technopark-dbms-forum/api/internal/domain"
 	userErrors "github.com/mailcourses/technopark-dbms-forum/api/internal/user"
+	"golang.org/x/net/context"
 	"strings"
 )
 
 type UserRepo struct {
-	sqlx *sqlx.DB
+	pool *pgxpool.Pool
 }
 
-func NewUserRepo(sqlx *sqlx.DB) domain.UserRepo {
-	return UserRepo{sqlx: sqlx}
+func NewUserRepo(pool *pgxpool.Pool) domain.UserRepo {
+	return UserRepo{pool: pool}
 }
 
 func (repo UserRepo) SelectById(id int64) (*domain.User, error) {
@@ -20,7 +21,11 @@ func (repo UserRepo) SelectById(id int64) (*domain.User, error) {
          	  WHERE id = $1`
 	holder := domain.User{}
 
-	if err := repo.sqlx.Get(&holder, query, id); err != nil {
+	if err := repo.pool.QueryRow(context.Background(), query, id).Scan(
+		&holder.Nickname,
+		&holder.Fullname,
+		&holder.About,
+		&holder.Email); err != nil {
 		return nil, err
 	}
 	return &holder, nil
@@ -30,20 +35,39 @@ func (repo UserRepo) SelectByNickname(nickname string) (*domain.User, error) {
 	query := `SELECT nickname, fullname, about, email FROM Users
               WHERE lower(nickname) = $1`
 	holder := domain.User{}
-	if err := repo.sqlx.Get(&holder, query, strings.ToLower(nickname)); err != nil {
+	if err := repo.pool.QueryRow(context.Background(), query, strings.ToLower(nickname)).Scan(
+		&holder.Nickname,
+		&holder.Fullname,
+		&holder.About,
+		&holder.Email); err != nil {
 		return nil, err
 	}
 	return &holder, nil
 }
 
 func (repo UserRepo) Create(user domain.User) ([]domain.User, error) {
-	var checked []domain.User
-
 	preQuery := `select nickname, fullname, about, email from users where lower(nickname)=$1 or lower(email)=$2`
-	if _ = repo.sqlx.Select(&checked, preQuery, strings.ToLower(user.Nickname), strings.ToLower(user.Email)); len(checked) > 0 {
+	rows, err := repo.pool.Query(context.Background(), preQuery, strings.ToLower(user.Nickname), strings.ToLower(user.Email))
+	if err != nil {
+		return nil, err
+	}
+
+	var checked []domain.User
+	for rows.Next() {
+		element := domain.User{}
+		if err := rows.Scan(
+			&element.Nickname,
+			&element.Fullname,
+			&element.About,
+			&element.Email); err != nil {
+			return nil, err
+		}
+		checked = append(checked, element)
+	}
+	if len(checked) > 0 {
 		return checked, &userErrors.UserErrorConfilct{Conflict: "nickname or email"}
 	}
-	checked = nil
+
 	query := `
 			INSERT INTO Users (nickname, fullname, about, email)
 	  		VALUES ($1, $2, $3, $4)
@@ -51,21 +75,20 @@ func (repo UserRepo) Create(user domain.User) ([]domain.User, error) {
 
 	inserted := domain.User{}
 
-	if err := repo.sqlx.QueryRow(query, user.Nickname, user.Fullname, user.About, user.Email).Scan(
+	if err := repo.pool.QueryRow(context.Background(), query, user.Nickname, user.Fullname, user.About, user.Email).Scan(
 		&inserted.Nickname,
 		&inserted.Fullname,
 		&inserted.About,
 		&inserted.Email); err != nil {
 		return nil, err
 	}
-
 	return []domain.User{inserted}, nil
 }
 
 func (repo UserRepo) Update(user *domain.User) (*domain.User, error) {
 	checked := domain.User{}
 	preQuery := `select nickname, fullname, about, email from users where lower(email)=$1`
-	if err := repo.sqlx.Select(&checked, preQuery, strings.ToLower(user.Email)); err == nil &&
+	if err := repo.pool.QueryRow(context.Background(), preQuery, strings.ToLower(user.Email)).Scan(&checked); err == nil &&
 		strings.ToLower(checked.Nickname) != strings.ToLower(user.Nickname) {
 		return nil, &userErrors.UserErrorConfilct{Conflict: "email"}
 	}
@@ -90,7 +113,7 @@ func (repo UserRepo) Update(user *domain.User) (*domain.User, error) {
 	}
 
 	updated := domain.User{}
-	if err := repo.sqlx.QueryRow(query, strings.ToLower(user.Nickname), user.Fullname, user.About, user.Email).Scan(
+	if err := repo.pool.QueryRow(context.Background(), query, strings.ToLower(user.Nickname), user.Fullname, user.About, user.Email).Scan(
 		&updated.Nickname,
 		&updated.Fullname,
 		&updated.About,
@@ -119,10 +142,22 @@ func (repo UserRepo) SelectUsersBySlug(slug string, limit int64, since string, d
 			 LIMIT $3`
 	}
 
-	var users []domain.User
-
-	if err := repo.sqlx.Select(&users, query, slug, strings.ToLower(since), limit); err != nil {
+	rows, err := repo.pool.Query(context.Background(), query, slug, strings.ToLower(since), limit)
+	if err != nil {
 		return nil, err
+	}
+
+	var users []domain.User
+	for rows.Next() {
+		element := domain.User{}
+		if err := rows.Scan(
+			&element.Nickname,
+			&element.Fullname,
+			&element.About,
+			&element.Email); err != nil {
+			return nil, err
+		}
+		users = append(users, element)
 	}
 
 	return users, nil

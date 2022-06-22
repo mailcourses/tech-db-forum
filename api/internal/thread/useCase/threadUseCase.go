@@ -73,11 +73,6 @@ func (useCase threadUseCase) SelectByIdOrSlug(slugOrId string) (*domain.Thread, 
 }
 
 func (useCase threadUseCase) Create(thread domain.Thread) (*domain.Thread, error) {
-	threadFromBd, _ := useCase.threadRepo.SelectBySlug(thread.Slug)
-	if thread.Slug != "" && threadFromBd != nil {
-		return threadFromBd, &threadErrors.ThreadErrorConfilct{Conflict: threadFromBd.Slug}
-	}
-
 	user, _ := useCase.userRepo.SelectByNickname(thread.Author)
 	if user == nil {
 		return nil, &userErrors.UserErrorNotExist{Name: thread.Author}
@@ -86,6 +81,11 @@ func (useCase threadUseCase) Create(thread domain.Thread) (*domain.Thread, error
 	forum, _ := useCase.forumRepo.SelectBySlug(thread.Forum)
 	if forum == nil {
 		return nil, &forumErrors.ForumErrorNotExist{Slug: thread.Slug}
+	}
+
+	threadFromBd, _ := useCase.threadRepo.SelectBySlug(thread.Slug)
+	if thread.Slug != "" && threadFromBd != nil {
+		return threadFromBd, &threadErrors.ThreadErrorConfilct{Conflict: threadFromBd.Slug}
 	}
 
 	thread.Forum = forum.Slug

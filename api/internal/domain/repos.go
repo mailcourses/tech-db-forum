@@ -37,5 +37,5 @@ type PostRepo interface {
 
 type ServiceRepo interface {
 	Clear() error
-	Status() (*Stat, error)
+	Status() (*Status, error)
 }

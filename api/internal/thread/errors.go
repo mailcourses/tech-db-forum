@@ -41,3 +41,10 @@ type ThreadErrorConfilct struct {
 func (e *ThreadErrorConfilct) Error() string {
 	return fmt.Sprintf("Thread data conflict, conflict <" + e.Conflict + ">, err:")
 }
+
+func (e *ThreadErrorConfilct) Is(target error) bool {
+	if _, ok := target.(*ThreadErrorConfilct); ok {
+		return true
+	}
+	return false
+}

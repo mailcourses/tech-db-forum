@@ -2,19 +2,20 @@ package threadPostgres
 
 import (
 	"github.com/go-openapi/swag"
-	"github.com/jmoiron/sqlx"
+	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/mailcourses/technopark-dbms-forum/api/internal/constants"
 	"github.com/mailcourses/technopark-dbms-forum/api/internal/domain"
 	threadErrors "github.com/mailcourses/technopark-dbms-forum/api/internal/thread"
+	"golang.org/x/net/context"
 	"strings"
 )
 
 type ThreadRepo struct {
-	sqlx *sqlx.DB
+	pool *pgxpool.Pool
 }
 
-func NewThreadRepo(sqlx *sqlx.DB) domain.ThreadRepo {
-	return ThreadRepo{sqlx: sqlx}
+func NewThreadRepo(pool *pgxpool.Pool) domain.ThreadRepo {
+	return ThreadRepo{pool: pool}
 }
 
 func (repo ThreadRepo) SelectById(id int64) (*domain.Thread, error) {
@@ -24,7 +25,7 @@ func (repo ThreadRepo) SelectById(id int64) (*domain.Thread, error) {
 
 	var thread domain.Thread
 
-	if err := repo.sqlx.Get(&thread, query, id); err != nil {
+	if err := repo.pool.QueryRow(context.Background(), query, id).Scan(domain.GetThreadFields(&thread)...); err != nil {
 		return nil, err
 	}
 
@@ -38,7 +39,7 @@ func (repo ThreadRepo) SelectBySlug(slug string) (*domain.Thread, error) {
 
 	var thread domain.Thread
 
-	if err := repo.sqlx.Get(&thread, query, strings.ToLower(slug)); err != nil {
+	if err := repo.pool.QueryRow(context.Background(), query, strings.ToLower(slug)).Scan(domain.GetThreadFields(&thread)...); err != nil {
 		return nil, err
 	}
 
@@ -76,10 +77,18 @@ func (repo ThreadRepo) SelectBySlugWithParams(slug string, limit int64, since st
 			  LIMIT $3`
 	}
 
-	var threads []domain.Thread
-
-	if err := repo.sqlx.Select(&threads, query, params...); err != nil {
+	rows, err := repo.pool.Query(context.Background(), query, params...)
+	if err != nil {
 		return nil, err
+	}
+
+	var threads []domain.Thread
+	for rows.Next() {
+		element := domain.Thread{}
+		if err := rows.Scan(domain.GetThreadFields(&element)...); err != nil {
+			return nil, err
+		}
+		threads = append(threads, element)
 	}
 
 	return threads, nil
@@ -111,7 +120,7 @@ func (repo ThreadRepo) SelectByTitle(title string) (*domain.Thread, error) {
 
 	var thread domain.Thread
 
-	if err := repo.sqlx.Get(&thread, query, title); err != nil {
+	if err := repo.pool.QueryRow(context.Background(), query, title).Scan(domain.GetThreadFields(&thread)...); err != nil {
 		return nil, err
 	}
 
@@ -124,7 +133,7 @@ func (repo ThreadRepo) Create(thread domain.Thread) (*domain.Thread, error) {
 			  RETURNING id, title, user_nickname, forum,  message, votes, slug, created;
 			  `
 	created := domain.Thread{}
-	if err := repo.sqlx.QueryRow(query,
+	if err := repo.pool.QueryRow(context.Background(), query,
 		thread.Title,
 		thread.Author,
 		thread.Forum,
@@ -132,15 +141,7 @@ func (repo ThreadRepo) Create(thread domain.Thread) (*domain.Thread, error) {
 		thread.Votes,
 		thread.Slug,
 		thread.Created).
-		Scan(
-			&created.Id,
-			&created.Title,
-			&created.Author,
-			&created.Forum,
-			&created.Message,
-			&created.Votes,
-			&created.Slug,
-			&created.Created); err != nil {
+		Scan(domain.GetThreadFields(&created)...); err != nil {
 		return nil, err
 	}
 
@@ -148,39 +149,18 @@ func (repo ThreadRepo) Create(thread domain.Thread) (*domain.Thread, error) {
 }
 
 func (repo ThreadRepo) Vote(thread *domain.Thread, vote *domain.Vote) (*domain.Thread, error) {
-	votesCheckQuery := `SELECT voice FROM VOTE WHERE threadId = $1 and nickname = $2`
-	voteBefore := int32(0)
-	if err := repo.sqlx.Get(&voteBefore, votesCheckQuery, thread.Id, vote.Nickname); err != nil {
-		voteBefore = 0
-	}
-
 	insertQuery := `INSERT INTO Vote (threadId, nickname, voice)
 			  VALUES ($1, $2, $3)
-			  ON CONFLICT (threadId, nickname) DO UPDATE SET voice = $3
-			  RETURNING voice`
+			  ON CONFLICT (threadId, nickname) DO UPDATE SET voice = $3`
 
-	voteAfter := int32(0)
-	if err := repo.sqlx.QueryRow(insertQuery, thread.Id, vote.Nickname, vote.Voice).Scan(&voteAfter); err != nil {
+	if _, err := repo.pool.Exec(context.Background(), insertQuery, thread.Id, vote.Nickname, vote.Voice); err != nil {
 		return nil, err
 	}
 
-	diff := voteAfter - voteBefore
-
-	updQuery := `UPDATE Thread SET votes = votes + $2
-              	 WHERE id = $1
-				 RETURNING id, title, user_nickname, forum,  message, votes, slug, created`
-
 	updThread := domain.Thread{}
+	query := `SELECT id, title, user_nickname, forum, message, votes, slug, created from thread where thread.id = $1`
 
-	if err := repo.sqlx.QueryRow(updQuery, thread.Id, diff).Scan(
-		&updThread.Id,
-		&updThread.Title,
-		&updThread.Author,
-		&updThread.Forum,
-		&updThread.Message,
-		&updThread.Votes,
-		&updThread.Slug,
-		&updThread.Created); err != nil {
+	if err := repo.pool.QueryRow(context.Background(), query, thread.Id).Scan(domain.GetThreadFields(&updThread)...); err != nil {
 		return nil, err
 	}
 
@@ -204,10 +184,17 @@ func (repo ThreadRepo) GetPosts(threadId int64, limit int64, since string, desc 
 		query, params = prepareFlat(since, desc, limit, params)
 	}
 
-	var posts []domain.Post
-
-	if err := repo.sqlx.Select(&posts, query, params...); err != nil {
+	rows, err := repo.pool.Query(context.Background(), query, params...)
+	if err != nil {
 		return nil, err
+	}
+	var posts []domain.Post
+	for rows.Next() {
+		element := domain.Post{}
+		if err := rows.Scan(domain.GetPostFields(&element)...); err != nil {
+			return nil, err
+		}
+		posts = append(posts, element)
 	}
 
 	return posts, nil
@@ -219,15 +206,7 @@ func (repo ThreadRepo) UpdateThread(threadId int64, upd domain.ThreadUpdate) (*d
 			  Where id = $3
 			  RETURNING id, title, user_nickname, forum, message, votes, slug, created`
 	thread := domain.Thread{}
-	if err := repo.sqlx.QueryRow(query, upd.Title, upd.Message, threadId).Scan(
-		&thread.Id,
-		&thread.Title,
-		&thread.Author,
-		&thread.Forum,
-		&thread.Message,
-		&thread.Votes,
-		&thread.Slug,
-		&thread.Created); err != nil {
+	if err := repo.pool.QueryRow(context.Background(), query, upd.Title, upd.Message, threadId).Scan(domain.GetThreadFields(&thread)...); err != nil {
 		return nil, err
 	}
 	return &thread, nil

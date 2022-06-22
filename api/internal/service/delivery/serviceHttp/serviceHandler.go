@@ -43,7 +43,7 @@ func (h serviceHandler) Clear(ctx echo.Context) error {
 //@Tags         service
 // @Accept          application/json
 // @Produce      application/json
-// @Success      200    {object}  domain.Stat "Кол-во записей в базе данных, включая помеченные как "удалённые"."
+// @Success      200    {object}  domain.Status "Кол-во записей в базе данных, включая помеченные как "удалённые"."
 // @Router       /api/service/status [get]
 func (h serviceHandler) Status(ctx echo.Context) error {
 	stat, err := h.ServiceUseCase.Status()

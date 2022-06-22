@@ -1,26 +1,27 @@
 package postPostgres
 
 import (
-	"github.com/jmoiron/sqlx"
+	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/mailcourses/technopark-dbms-forum/api/internal/domain"
 	postErrors "github.com/mailcourses/technopark-dbms-forum/api/internal/post"
+	"golang.org/x/net/context"
 )
 
 type PostRepo struct {
-	sqlx *sqlx.DB
+	pool *pgxpool.Pool
 }
 
-func NewPostRepo(sqlx *sqlx.DB) domain.PostRepo {
-	return PostRepo{sqlx: sqlx}
+func NewPostRepo(pool *pgxpool.Pool) domain.PostRepo {
+	return PostRepo{pool: pool}
 }
 
 func (repo PostRepo) SelectById(id int64, params domain.PostParams) (*domain.PostFull, error) {
 	postFull := domain.PostFull{}
 	query := `SELECT id, parent, author, message, is_edited, forum, thread, created
 			  FROM Post
-			  WHERE id = $1`
+			  WHERE id = $1;`
 	post := domain.Post{}
-	if err := repo.sqlx.Get(&post, query, id); err != nil {
+	if err := repo.pool.QueryRow(context.Background(), query, id).Scan(domain.GetPostFields(&post)...); err != nil {
 		return nil, err
 	}
 	postFull.Post = &post
@@ -30,8 +31,8 @@ func (repo PostRepo) SelectById(id int64, params domain.PostParams) (*domain.Pos
 		getForumQuery := `SELECT title, f.user_nickname, slug, posts, threads
 						  FROM Forum f
 						  JOIN Post p ON lower(p.forum) = lower(f.slug)
-						  WHERE p.id = $1`
-		if err := repo.sqlx.Get(&forum, getForumQuery, id); err != nil {
+						  WHERE p.id = $1;`
+		if err := repo.pool.QueryRow(context.Background(), getForumQuery, id).Scan(domain.GetForumFields(&forum)...); err != nil {
 			return nil, err
 		}
 		postFull.Forum = &forum
@@ -42,8 +43,8 @@ func (repo PostRepo) SelectById(id int64, params domain.PostParams) (*domain.Pos
 		getThreadQuery := `SELECT t.id, title, t.user_nickname, t.forum, t.message, votes, slug, t.created
 						  FROM Thread t
 						  JOIN Post p ON p.thread = t.id
-						  WHERE p.id = $1`
-		if err := repo.sqlx.Get(&thread, getThreadQuery, id); err != nil {
+						  WHERE p.id = $1;`
+		if err := repo.pool.QueryRow(context.Background(), getThreadQuery, id).Scan(domain.GetThreadFields(&thread)...); err != nil {
 			return nil, err
 		}
 		postFull.Thread = &thread
@@ -54,8 +55,8 @@ func (repo PostRepo) SelectById(id int64, params domain.PostParams) (*domain.Pos
 		getUserQuery := `SELECT nickname, fullname, about, email
 						  FROM Users u
 						  JOIN Post p ON lower(p.author) = lower(u.nickname)
-						  WHERE p.id = $1`
-		if err := repo.sqlx.Get(&user, getUserQuery, id); err != nil {
+						  WHERE p.id = $1;`
+		if err := repo.pool.QueryRow(context.Background(), getUserQuery, id).Scan(domain.GetUserFields(&user)...); err != nil {
 			return nil, err
 		}
 		postFull.Author = &user
@@ -68,18 +69,10 @@ func (repo PostRepo) UpdateMsg(id int64, postUpdate domain.PostUpdate, isEdited 
 	query := `UPDATE Post
 			 SET message = $2, is_edited = $3
 			 WHERE id = $1
-			 RETURNING id, parent, author, message, is_edited, forum, thread, created`
+			 RETURNING id, parent, author, message, is_edited, forum, thread, created;`
 
 	updated := domain.Post{}
-	if err := repo.sqlx.QueryRow(query, id, postUpdate.Message, isEdited).Scan(
-		&updated.Id,
-		&updated.Parent,
-		&updated.Author,
-		&updated.Message,
-		&updated.IsEdited,
-		&updated.Forum,
-		&updated.Thread,
-		&updated.Created); err != nil {
+	if err := repo.pool.QueryRow(context.Background(), query, id, postUpdate.Message, isEdited).Scan(domain.GetPostFields(&updated)...); err != nil {
 		return nil, err
 	}
 
@@ -93,14 +86,12 @@ func (repo PostRepo) CreatePosts(posts []domain.Post, forum string, threadId int
 			  VALUES `
 
 	const postFields = 7
-	query = makeMultiplyQuery(query, elements, postFields)
-
-	args, err := makeArgsForPosts(posts, postFields, forum, threadId)
+	query, args, err := prepareQueryWithArgs(posts, query, postFields, threadId, forum)
 	if err != nil {
 		return nil, err
 	}
 
-	rows, err := repo.sqlx.Query(query, args...)
+	rows, err := repo.pool.Query(context.Background(), query, args...)
 
 	if err != nil {
 		return nil, err
@@ -109,15 +100,7 @@ func (repo PostRepo) CreatePosts(posts []domain.Post, forum string, threadId int
 	result := make([]domain.Post, elements)
 
 	for i := 0; rows.Next(); i++ {
-		err = rows.Scan(
-			&result[i].Id,
-			&result[i].Parent,
-			&result[i].Author,
-			&result[i].Message,
-			&result[i].IsEdited,
-			&result[i].Forum,
-			&result[i].Thread,
-			&result[i].Created)
+		err = rows.Scan(domain.GetPostFields(&result[i])...)
 		if err != nil {
 			return nil, err
 		}

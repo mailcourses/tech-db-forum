@@ -1,17 +1,18 @@
 package servicePostgres
 
 import (
-	"github.com/jmoiron/sqlx"
+	"context"
+	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/mailcourses/technopark-dbms-forum/api/internal/domain"
 )
 
 type ServiceRepo struct {
-	stat *sqlx.DB
+	pool *pgxpool.Pool
 }
 
-func NewServiceRepo(stat *sqlx.DB) domain.ServiceRepo {
+func NewServiceRepo(pool *pgxpool.Pool) domain.ServiceRepo {
 	return ServiceRepo{
-		stat: stat,
+		pool: pool,
 	}
 }
 
@@ -19,18 +20,18 @@ func (repo ServiceRepo) Clear() error {
 	query := `TRUNCATE Post, thread, forum, users cascade;
 			  update stat set posts=0, threads=0, forums=0, users=0;`
 
-	if _, err := repo.stat.Exec(query); err != nil {
+	if _, err := repo.pool.Exec(context.Background(), query); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func (repo ServiceRepo) Status() (*domain.Stat, error) {
-	stat := domain.Stat{}
+func (repo ServiceRepo) Status() (*domain.Status, error) {
+	stat := domain.Status{}
 
 	query := `SELECT users, threads, posts, forums from Stat`
-	if err := repo.stat.QueryRow(query).Scan(&stat.Users, &stat.Threads, &stat.Posts, &stat.Forums); err != nil {
+	if err := repo.pool.QueryRow(context.Background(), query).Scan(domain.GetStatusFields(&stat)...); err != nil {
 		return nil, err
 	}
 

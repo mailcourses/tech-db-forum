@@ -64,6 +64,10 @@ func (h threadHandler) Create(ctx echo.Context) error {
 
 	createdThread, err := h.threadUseCase.Create(threadToCreate)
 
+	if err == nil {
+		return ctx.JSON(http.StatusCreated, *createdThread)
+	}
+
 	if _, ok := err.(*threadErrors.ThreadErrorConfilct); ok {
 		return ctx.JSON(http.StatusConflict, *createdThread)
 	}
@@ -76,7 +80,7 @@ func (h threadHandler) Create(ctx echo.Context) error {
 		return tools.WriteErrorEchoServer(ctx, CustomErrors.ErrorForumBySlugNotFound(threadToCreate.Slug), http.StatusNotFound)
 	}
 
-	return ctx.JSON(http.StatusCreated, *createdThread)
+	return err
 }
 
 // GetThreadsOnForum godoc

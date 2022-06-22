@@ -26,24 +26,24 @@ func main() {
 		e.Logger.Fatalf("error to init logrus:", err)
 	}
 
-	e.Use(logs.ColoredLogMiddleware)
-	e.Use(logs.JsonLogMiddleware)
-	e.Logger.SetOutput(logs.Logrus.Writer())
+	//e.Use(logs.ColoredLogMiddleware)
+	//e.Use(logs.JsonLogMiddleware)
+	//e.Logger.SetOutput(logs.Logrus.Writer())
 
-	sqlx, err := InitDb.InitPostgres(dsnKey)
+	pools, err := InitDb.InitPostgres(dsnKey)
 	if err != nil {
 		logs.Logrus.Fatalln("error to init db, dsn:", os.Getenv(dsnKey), "err:", err)
 	}
 
-	sqlxes := internal.SqlxContainer{
-		ForumSqlx:   sqlx,
-		UserSqlx:    sqlx,
-		ThreadSqlx:  sqlx,
-		PostSqlx:    sqlx,
-		ServiceSqlx: sqlx,
+	pgxpools := internal.PgxPoolContainer{
+		ForumPool:   pools,
+		UserPool:    pools,
+		ThreadPool:  pools,
+		PostPool:    pools,
+		ServicePool: pools,
 	}
 
-	if err := system.InitApi(e, sqlxes); err != nil {
+	if err := system.InitApi(e, pgxpools); err != nil {
 		logs.Logrus.Fatalln("error to set routes, err:", err)
 	}
 

@@ -2,6 +2,10 @@ package domain
 
 import "time"
 
+func GetPostFields(post *Post) []any {
+	return []any{&post.Id, &post.Parent, &post.Author, &post.Message, &post.IsEdited, &post.Forum, &post.Thread, &post.Created}
+}
+
 type Post struct {
 	Id       int64     `json:"id,omitempty" db:"id"`
 	Parent   int64     `json:"parent,omitempty" db:"parent"`

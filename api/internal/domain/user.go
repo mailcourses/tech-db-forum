@@ -1,5 +1,9 @@
 package domain
 
+func GetUserFields(user *User) []any {
+	return []any{&user.Nickname, &user.Fullname, &user.About, &user.Email}
+}
+
 type User struct {
 	Nickname string `json:"nickname,omitempty" db:"nickname"`
 	Fullname string `json:"fullname,omitempty" example:"Captain Jack Sparrow" db:"fullname"`

@@ -2,6 +2,10 @@ package domain
 
 import "time"
 
+func GetThreadFields(thread *Thread) []any {
+	return []any{&thread.Id, &thread.Title, &thread.Author, &thread.Forum, &thread.Message, &thread.Votes, &thread.Slug, &thread.Created}
+}
+
 type Thread struct {
 	Id      int64     `json:"id,omitempty" example:"1" db:"id"`
 	Title   string    `json:"title,omitempty" example:"Davy Jones cache" db:"title"`

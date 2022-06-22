@@ -1,29 +1,30 @@
 package InitDb
 
 import (
-	"database/sql"
-	"github.com/jmoiron/sqlx"
+	"github.com/jackc/pgx/v5/pgxpool"
+	"golang.org/x/net/context"
 	"os"
+	"time"
 )
 
-func InitPostgres(dsnEnv string) (*sqlx.DB, error) {
+func InitPostgres(dsnEnv string) (*pgxpool.Pool, error) {
 	dsn := os.Getenv(dsnEnv)
-	db, err := sql.Open("pgx", dsn)
+	connConf, err := pgxpool.ParseConfig(dsn)
 	if err != nil {
 		return nil, err
 	}
-	err = db.Ping()
-	if err != nil {
-		return nil, err
-	}
+	connConf.MaxConns = 200
+	connConf.MaxConnLifetime = time.Minute
+	connConf.MaxConnIdleTime = time.Second * 5
 
-	db.SetMaxOpenConns(100)
-
-	sqlxDb := sqlx.NewDb(db, "pgx")
-	err = sqlxDb.Ping()
+	pool, err := pgxpool.ConnectConfig(context.Background(), connConf)
 	if err != nil {
 		return nil, err
 	}
 
-	return sqlxDb, nil
+	if err := pool.Ping(context.Background()); err != nil {
+		return nil, err
+	}
+
+	return pool, nil
 }
