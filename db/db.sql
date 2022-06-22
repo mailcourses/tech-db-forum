@@ -82,36 +82,21 @@ CREATE OR REPLACE FUNCTION insertPathTree() RETURNS trigger as
 $insertPathTree$
 Declare
     parent_path BIGINT[];
-    parent_thread int;
-    parent_post int;
+--     parent_thread int;
+--     parent_post int;
 --     post_author Users;
 begin
     if (new.parent = 0) then
         new.pathtree := array_append(new.pathtree, new.id);
     else
---         select * from users where lower(users.nickname) = lower(new.author) into post_author;
---         if (post_author is null) then
---             raise exception sqlstate '22003' using message='author is not exist';
---         end if;
-
-        select thread, pathTree, id from post where id = new.parent into parent_thread, parent_path, parent_post;
-        if (parent_post is null) then
-            raise exception sqlstate '22003' using message='parent id is not exist';
-        end if;
-
-        if (parent_thread != new.thread) then
-            raise exception sqlstate '22003' using message='threads not equals';
-        end if;
-
+        select pathtree from post where id = new.parent into parent_path;
         new.pathtree := new.pathtree || parent_path || new.id;
-
     end if;
     UPDATE forum SET posts=posts + 1 WHERE lower(forum.slug) = lower(new.forum);
     UPDATE Stat SET posts = Stat.posts + 1;
     return new;
 end
 $insertPathTree$ LANGUAGE plpgsql;
-
 
 CREATE OR REPLACE FUNCTION insertThreadsVotes() RETURNS trigger as
 $insertThreadsVotes$

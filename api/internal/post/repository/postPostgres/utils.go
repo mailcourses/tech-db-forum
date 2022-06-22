@@ -1,14 +1,19 @@
 package postPostgres
 
 import (
+	"context"
 	"errors"
 	"fmt"
+	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/mailcourses/technopark-dbms-forum/api/internal/domain"
+	postErrors "github.com/mailcourses/technopark-dbms-forum/api/internal/post"
+	"strings"
 	"time"
 )
 
-func prepareQueryWithArgs(posts []domain.Post, query string, fields int, threadId int64, forum string) (string, []interface{}, error) {
-	totalParams := len(posts) * fields
+func prepareQueryWithArgs(posts []domain.Post, query string, fields int, threadId int64, forum string, pool *pgxpool.Pool) (string, []interface{}, error) {
+	totalPosts := len(posts)
+	totalParams := totalPosts * fields
 	params := make([]interface{}, 0, totalParams)
 	createdTime := time.Now()
 
@@ -16,6 +21,11 @@ func prepareQueryWithArgs(posts []domain.Post, query string, fields int, threadI
 	query += lastSymbol
 
 	for i := 0; i < totalParams; i++ {
+		if i < totalPosts {
+			if err := checkCurrPost(posts[i], pool); err != nil {
+				return "", nil, err
+			}
+		}
 		currParam, err := setCurrParam(i, fields, posts, forum, threadId, createdTime)
 		if err != nil {
 			return "", nil, err
@@ -65,6 +75,34 @@ func setCurrQuery(query *string, i int, fields int, totalParams int, lastSymbol 
 	} else {
 		*query += ", "
 	}
+}
+
+func checkCurrPost(currPost domain.Post, pool *pgxpool.Pool) error {
+	author := currPost.Author
+	parent := currPost.Parent
+	thread := currPost.Thread
+
+	authorCheckQuery := `select id from users where lower(users.nickname) = $1;`
+	authorId := 0
+	if err := pool.QueryRow(context.Background(), authorCheckQuery, strings.ToLower(author)).Scan(&authorId); err != nil {
+		return &postErrors.PostErrorAuthorNotExist{Err: author}
+	}
+
+	if parent == 0 {
+		return nil
+	}
+
+	parentCheckQuery := `select thread from post where id = $1;`
+	parentThread := int32(0)
+	if err := pool.QueryRow(context.Background(), parentCheckQuery, parent).Scan(&parentThread); err != nil {
+		return &postErrors.PostErrorParentIdNotExist{Err: fmt.Sprint(parent)}
+	}
+
+	if thread != 0 && parentThread != thread {
+		return &postErrors.PostErrorParentHaveAnotherThread{Err: fmt.Sprint(thread)}
+	}
+
+	return nil
 }
 
 //func makeMultiplyQuery(query string, elements int, fields int) string {

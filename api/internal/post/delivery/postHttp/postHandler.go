@@ -112,7 +112,6 @@ func (h postHandler) CreatePosts(ctx echo.Context) error {
 	}
 
 	createdPosts, err := h.PostUseCase.CreatePosts(slugOrId, posts)
-
 	if createdPosts == nil {
 		if _, ok := err.(*threadErrors.ThreadBySlugErrorNotExist); ok {
 			return tools.WriteErrorEchoServer(ctx, CustomErrors.ErrorThreadBySlugNotFound(slugOrId), http.StatusNotFound)
