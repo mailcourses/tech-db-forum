@@ -19,7 +19,7 @@ services:
 
   db:
     container_name: postgres
-    image: postgres
+    image: postgres:13
     volumes:
       - ../../db/:/docker-entrypoint-initdb.d/
     environment:
