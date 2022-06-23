@@ -106,6 +106,16 @@ func (repo PostRepo) CreatePosts(posts []domain.Post, forum string, threadId int
 			return nil, err
 		}
 
+		currUser := domain.User{}
+		getUserQuery := `SELECT nickname, fullname, about, email from users where lower(nickname) = $1`
+		if err := repo.pool.QueryRow(context.Background(), getUserQuery, strings.ToLower(result[i].Author)).Scan(domain.GetUserFields(&currUser)...); err != nil {
+			return nil, err
+		}
+
+		insertInForumUsersQuery := `INSERT INTO ForumUsers (nickname, fullname, about, email, forum) VALUES ($1, $2, $3, $4, $5) ON CONFLICT DO NOTHING;`
+		if _, err := repo.pool.Exec(context.Background(), insertInForumUsersQuery, currUser.Nickname, currUser.Fullname, currUser.About, currUser.Email, result[i].Forum); err != nil {
+			return nil, err
+		}
 	}
 
 	if len(result) > 0 {

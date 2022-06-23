@@ -54,27 +54,27 @@ func (repo ThreadRepo) SelectBySlugWithParams(slug string, limit int64, since st
 	if desc && since == "" {
 		params = append(params, limit)
 		query = `SELECT id, title, user_nickname, forum, message, votes, slug, created FROM Thread
-			  WHERE lower(forum) = $1
+			  WHERE forum = $1
 			  ORDER BY created DESC
-			  LIMIT $2`
+			  LIMIT $2;`
 	} else if desc && since != "" {
 		params = append(params, since, limit)
 		query = `SELECT id, title, user_nickname, forum, message, votes, slug, created FROM Thread
-			  WHERE lower(forum) = $1 AND created <= $2
+			  WHERE forum = $1 AND created <= $2
 			  ORDER BY created DESC
-			  LIMIT $3`
+			  LIMIT $3;`
 	} else if since == "" {
 		params = append(params, limit)
 		query = `SELECT id, title, user_nickname, forum, message, votes, slug, created FROM Thread
-			  WHERE lower(forum) = $1
+			  WHERE forum = $1
 			  ORDER BY created
-			  LIMIT $2`
+			  LIMIT $2;`
 	} else {
 		params = append(params, since, limit)
 		query = `SELECT id, title, user_nickname, forum, message, votes, slug, created FROM Thread
-			  WHERE lower(forum) = $1 AND created >= $2
+			  WHERE forum = $1 AND created >= $2
 			  ORDER BY created
-			  LIMIT $3`
+			  LIMIT $3;`
 	}
 
 	rows, err := repo.pool.Query(context.Background(), query, params...)
@@ -127,7 +127,7 @@ func (repo ThreadRepo) SelectByTitle(title string) (*domain.Thread, error) {
 	return &thread, nil
 }
 
-func (repo ThreadRepo) Create(thread domain.Thread) (*domain.Thread, error) {
+func (repo ThreadRepo) Create(thread domain.Thread, user *domain.User) (*domain.Thread, error) {
 	query := `INSERT INTO Thread (title, user_nickname, forum,  message, votes, slug, created)
 			  VALUES ($1, $2, $3, $4, $5, $6, $7)
 			  RETURNING id, title, user_nickname, forum,  message, votes, slug, created;
@@ -142,6 +142,16 @@ func (repo ThreadRepo) Create(thread domain.Thread) (*domain.Thread, error) {
 		thread.Slug,
 		thread.Created).
 		Scan(domain.GetThreadFields(&created)...); err != nil {
+		return nil, err
+	}
+
+	forumUpdQuery := `UPDATE forum SET threads = threads + 1 WHERE lower(forum.slug) = $1`
+	if _, err := repo.pool.Exec(context.Background(), forumUpdQuery, strings.ToLower(thread.Forum)); err != nil {
+		return nil, err
+	}
+
+	insertInForumUsersQuery := `INSERT INTO ForumUsers (nickname, fullname, about, email, forum) VALUES ($1, $2, $3, $4, $5) ON CONFLICT DO NOTHING;`
+	if _, err := repo.pool.Exec(context.Background(), insertInForumUsersQuery, user.Nickname, user.Fullname, user.About, user.Email, thread.Forum); err != nil {
 		return nil, err
 	}
 

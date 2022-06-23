@@ -33,7 +33,7 @@ func (repo UserRepo) SelectById(id int64) (*domain.User, error) {
 
 func (repo UserRepo) SelectByNickname(nickname string) (*domain.User, error) {
 	query := `SELECT nickname, fullname, about, email FROM Users
-              WHERE lower(nickname) = $1`
+              WHERE nickname = $1`
 	holder := domain.User{}
 	if err := repo.pool.QueryRow(context.Background(), query, strings.ToLower(nickname)).Scan(
 		&holder.Nickname,
@@ -46,7 +46,7 @@ func (repo UserRepo) SelectByNickname(nickname string) (*domain.User, error) {
 }
 
 func (repo UserRepo) Create(user domain.User) ([]domain.User, error) {
-	preQuery := `select nickname, fullname, about, email from users where lower(nickname)=$1 or lower(email)=$2`
+	preQuery := `select nickname, fullname, about, email from users where nickname=$1 or email=$2`
 	rows, err := repo.pool.Query(context.Background(), preQuery, strings.ToLower(user.Nickname), strings.ToLower(user.Email))
 	if err != nil {
 		return nil, err
@@ -75,13 +75,10 @@ func (repo UserRepo) Create(user domain.User) ([]domain.User, error) {
 
 	inserted := domain.User{}
 
-	if err := repo.pool.QueryRow(context.Background(), query, user.Nickname, user.Fullname, user.About, user.Email).Scan(
-		&inserted.Nickname,
-		&inserted.Fullname,
-		&inserted.About,
-		&inserted.Email); err != nil {
+	if err := repo.pool.QueryRow(context.Background(), query, user.Nickname, user.Fullname, user.About, user.Email).Scan(domain.GetUserFields(&inserted)...); err != nil {
 		return nil, err
 	}
+
 	return []domain.User{inserted}, nil
 }
 
@@ -95,7 +92,7 @@ func (repo UserRepo) Update(user *domain.User) (*domain.User, error) {
 
 	query := `UPDATE Users
 			  SET fullname = $2, about = $3, email = $4
-              WHERE lower(nickname) = $1
+              WHERE nickname = $1
               RETURNING nickname, fullname, about, email`
 
 	beforeUpd, _ := repo.SelectByNickname(user.Nickname)
@@ -127,18 +124,14 @@ func (repo UserRepo) SelectUsersBySlug(slug string, limit int64, since string, d
 	var query string
 
 	if desc {
-		query = `SELECT DISTINCT nickname, fullname, about, email FROM Users U
-			 JOIN Forum f ON f.user_nickname = U.nickname
-             JOIN Thread t ON t.user_nickname = U.nickname
-             WHERE f.slug = $1 AND lower(nickname) > $2
-			 ORDER BY lower(nickname) DESC
+		query = `SELECT DISTINCT nickname, fullname, about, email FROM ForumUsers u
+			 WHERE u.forum = $1 AND u.nickname > $2
+			 ORDER BY nickname DESC
 			 LIMIT $3`
 	} else {
-		query = `SELECT DISTINCT nickname, fullname, about, email FROM Users U
-			 JOIN Forum f ON f.user_nickname = U.nickname
-             JOIN Thread t ON t.user_nickname = U.nickname
-             WHERE f.slug = $1 AND lower(nickname) > $2
-			 ORDER BY lower(nickname)
+		query = `SELECT DISTINCT nickname, fullname, about, email FROM ForumUsers u
+			 WHERE u.forum = $1 AND u.nickname > $2
+			 ORDER BY nickname
 			 LIMIT $3`
 	}
 

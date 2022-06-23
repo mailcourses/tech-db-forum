@@ -13,7 +13,7 @@ func InitPostgres(dsnEnv string) (*pgxpool.Pool, error) {
 	if err != nil {
 		return nil, err
 	}
-	connConf.MaxConns = 200
+	connConf.MaxConns = 100
 	connConf.MaxConnLifetime = time.Minute
 	connConf.MaxConnIdleTime = time.Second * 5
 

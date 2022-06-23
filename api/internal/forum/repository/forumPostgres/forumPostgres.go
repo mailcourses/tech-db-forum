@@ -15,8 +15,6 @@ func NewForumRepo(pool *pgxpool.Pool) domain.ForumRepo {
 	return ForumRepo{pool: pool}
 }
 
-//todo доделать каунтер постов и тредов в форуме
-
 func (repo ForumRepo) SelectById(id int64) (*domain.Forum, error) {
 	query := `SELECT title, user_nickname, slug, posts, threads FROM Forum WHERE id = $1`
 	holder := domain.Forum{}
@@ -73,42 +71,30 @@ func (repo ForumRepo) GetUsers(slug string, limit int64, since string, desc bool
 	params = append(params, strings.ToLower(slug))
 	since = strings.ToLower(since)
 	if desc && since == "" {
-		params = append(params, limit)
-		query = `SELECT nickname, fullname, about, email from users as u
-			  full Join thread t on lower(t.forum) = $1
-			  full Join post p on lower(p.forum) = $1
- 			  Where lower(t.user_nickname) = lower(u.nickname) or lower(p.author) = lower(u.nickname)
-			  Group by nickname, fullname, about, email
-			  Order by lower(nickname) collate "C" DESC 
+		query = `SELECT nickname, fullname, about, email from ForumUsers as u
+ 			  Where u.forum = $1
+			  Order by nickname DESC 
 			  Limit $2;`
 	} else if desc && since != "" {
-		params = append(params, since, limit)
-		query = `SELECT nickname, fullname, about, email from users as u
-			  full Join thread t on lower(t.forum) = $1
-			  full Join post p on lower(p.forum) = $1
- 			  Where lower(u.nickname) collate "C" < $2 collate "C" and (lower(t.user_nickname) = lower(u.nickname) or lower(p.author) = lower(u.nickname))
-			  Group by nickname, fullname, about, email
-			  Order by lower(nickname) collate "C" DESC
+		params = append(params, since)
+		query = `SELECT nickname, fullname, about, email from ForumUsers as u
+		      Where u.forum = $1 and u.nickname < $2
+			  Order by nickname DESC
 			  Limit $3;`
 	} else if !desc && since == "" {
-		params = append(params, limit)
-		query = `SELECT nickname, fullname, about, email from users as u
-			  full Join thread t on lower(t.forum) = $1
-			  full Join post p on lower(p.forum) = $1
- 			  Where lower(t.user_nickname) = lower(u.nickname) or lower(p.author) = lower(u.nickname)
-			  Group by nickname, fullname, about, email
-			  Order by lower(nickname) collate "C"
+		query = `SELECT nickname, fullname, about, email from ForumUsers as u
+			  Where u.forum = $1
+			  Order by nickname
 			  Limit $2;`
 	} else if !desc && since != "" {
-		params = append(params, since, limit)
-		query = `SELECT nickname, fullname, about, email from users as u
-			  full Join thread t on lower(t.forum) = $1
-			  full Join post p on lower(p.forum) = $1
- 			  Where lower(u.nickname) collate "C" > $2 collate "C" and (lower(t.user_nickname) = lower(u.nickname) or lower(p.author) = lower(u.nickname))
-			  Group by nickname, fullname, about, email
-			  Order by lower(nickname) collate "C"
+		params = append(params, since)
+		query = `SELECT nickname, fullname, about, email from ForumUsers as u
+ 			  Where u.forum = $1 and u.nickname > $2
+			  Order by nickname
 			  Limit $3;`
 	}
+
+	params = append(params, limit)
 
 	rows, err := repo.pool.Query(context.Background(), query, params...)
 	if err != nil {

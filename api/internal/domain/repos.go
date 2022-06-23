@@ -23,7 +23,7 @@ type ThreadRepo interface {
 	SelectByIdOrSlug(slugOrId string) (*Thread, error)
 	SelectByTitle(title string) (*Thread, error)
 	SelectBySlug(slug string) (*Thread, error)
-	Create(thread Thread) (*Thread, error)
+	Create(thread Thread, user *User) (*Thread, error)
 	Vote(thread *Thread, vote *Vote) (*Thread, error)
 	GetPosts(threadId int32, limit int64, since string, desc bool, sort string) ([]Post, error)
 	UpdateThread(threadId int32, upd ThreadUpdate) (*Thread, error)

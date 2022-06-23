@@ -17,7 +17,7 @@ func NewServiceRepo(pool *pgxpool.Pool) domain.ServiceRepo {
 }
 
 func (repo ServiceRepo) Clear() error {
-	query := `TRUNCATE Post, thread, forum, users cascade;`
+	query := `TRUNCATE Post, thread, forum, users, forumUsers cascade;`
 
 	if _, err := repo.pool.Exec(context.Background(), query); err != nil {
 		return err

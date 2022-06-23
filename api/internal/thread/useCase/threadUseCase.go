@@ -89,7 +89,7 @@ func (useCase threadUseCase) Create(thread domain.Thread) (*domain.Thread, error
 	}
 
 	thread.Forum = forum.Slug
-	createdThread, err := useCase.threadRepo.Create(thread)
+	createdThread, err := useCase.threadRepo.Create(thread, user)
 	if err != nil {
 		return nil, err
 	}
