@@ -54,17 +54,6 @@ CREATE UNLOGGED TABLE Vote
     voice    int          NOT NULL default 0
 );
 
-CREATE UNLOGGED TABLE Stat
-(
-    posts int default 0,
-    users int default 0,
-    forums int default 0,
-    threads int default 0
-);
-
-INSERT into Stat
-VALUES (0, 0, 0, 0);
-
 CREATE UNIQUE INDEX IF NOT EXISTS lowercase_emails on Users (lower(email));
 CREATE UNIQUE INDEX IF NOT EXISTS lowercase_nicknames on Users (lower(nickname));
 CREATE UNIQUE INDEX IF NOT EXISTS lowercase_slug_forum on Forum (lower(slug));
@@ -82,9 +71,6 @@ CREATE OR REPLACE FUNCTION insertPathTree() RETURNS trigger as
 $insertPathTree$
 Declare
     parent_path BIGINT[];
---     parent_thread int;
---     parent_post int;
---     post_author Users;
 begin
     if (new.parent = 0) then
         new.pathtree := array_append(new.pathtree, new.id);
@@ -92,11 +78,12 @@ begin
         select pathtree from post where id = new.parent into parent_path;
         new.pathtree := new.pathtree || parent_path || new.id;
     end if;
-    UPDATE forum SET posts=posts + 1 WHERE lower(forum.slug) = lower(new.forum);
-    UPDATE Stat SET posts = Stat.posts + 1;
+--     UPDATE forum SET posts=posts + 1 WHERE lower(forum.slug) = lower(new.forum);
     return new;
 end
 $insertPathTree$ LANGUAGE plpgsql;
+
+
 
 CREATE OR REPLACE FUNCTION insertThreadsVotes() RETURNS trigger as
 $insertThreadsVotes$
@@ -130,27 +117,9 @@ CREATE OR REPLACE FUNCTION incThreadCounter() RETURNS trigger as
 $incThreadCounter$
 begin
     UPDATE forum SET threads = threads + 1 WHERE lower(forum.slug) = lower(new.forum);
-    UPDATE Stat SET threads = Stat.threads + 1;
     return new;
 end;
 $incThreadCounter$ LANGUAGE plpgsql;
-
-CREATE OR REPLACE FUNCTION incForumsCounter() RETURNS trigger as
-$incForumsCounter$
-begin
-    UPDATE Stat SET forums = Stat.forums + 1;
-    return new;
-end;
-$incForumsCounter$ LANGUAGE plpgsql;
-
-CREATE OR REPLACE FUNCTION incUsersCounter() RETURNS trigger as
-$incUsersCounter$
-begin
-    UPDATE Stat SET users = Stat.users + 1;
-    return new;
-end;
-$incUsersCounter$ LANGUAGE plpgsql;
-
 
 CREATE TRIGGER insertPathTreeTrigger
     BEFORE INSERT
@@ -163,17 +132,5 @@ CREATE TRIGGER incThreadCounter
     on Thread
     for each row
 EXECUTE FUNCTION incThreadCounter();
-
-CREATE TRIGGER incUsersCounter
-    AFTER INSERT
-    on Users
-    for each row
-EXECUTE FUNCTION incUsersCounter();
-
-CREATE TRIGGER incForumCounter
-    AFTER INSERT
-    on Forum
-    for each row
-EXECUTE FUNCTION incForumsCounter();
 
 VACUUM ANALYZE;

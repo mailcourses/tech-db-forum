@@ -7,7 +7,7 @@ func GetThreadFields(thread *Thread) []any {
 }
 
 type Thread struct {
-	Id      int64     `json:"id,omitempty" example:"1" db:"id"`
+	Id      int32     `json:"id,omitempty" example:"1" db:"id"`
 	Title   string    `json:"title,omitempty" example:"Davy Jones cache" db:"title"`
 	Author  string    `json:"author,omitempty" example:"j.sparrow" db:"user_nickname"`
 	Forum   string    `json:"forum,omitempty" example:"pirate-stories" db:"forum"`

@@ -17,8 +17,7 @@ func NewServiceRepo(pool *pgxpool.Pool) domain.ServiceRepo {
 }
 
 func (repo ServiceRepo) Clear() error {
-	query := `TRUNCATE Post, thread, forum, users cascade;
-			  update stat set posts=0, threads=0, forums=0, users=0;`
+	query := `TRUNCATE Post, thread, forum, users cascade;`
 
 	if _, err := repo.pool.Exec(context.Background(), query); err != nil {
 		return err
@@ -30,8 +29,25 @@ func (repo ServiceRepo) Clear() error {
 func (repo ServiceRepo) Status() (*domain.Status, error) {
 	stat := domain.Status{}
 
-	query := `SELECT users, threads, posts, forums from Stat`
-	if err := repo.pool.QueryRow(context.Background(), query).Scan(domain.GetStatusFields(&stat)...); err != nil {
+	var query string
+
+	query = `SELECT count(*) from users;`
+	if err := repo.pool.QueryRow(context.Background(), query).Scan(&stat.User); err != nil {
+		return nil, err
+	}
+
+	query = `SELECT count(*) from thread;`
+	if err := repo.pool.QueryRow(context.Background(), query).Scan(&stat.Thread); err != nil {
+		return nil, err
+	}
+
+	query = `SELECT count(*) from forum;`
+	if err := repo.pool.QueryRow(context.Background(), query).Scan(&stat.Forum); err != nil {
+		return nil, err
+	}
+
+	query = `SELECT count(*) from post;`
+	if err := repo.pool.QueryRow(context.Background(), query).Scan(&stat.Post); err != nil {
 		return nil, err
 	}
 

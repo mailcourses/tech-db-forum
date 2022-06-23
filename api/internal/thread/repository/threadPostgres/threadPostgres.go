@@ -167,7 +167,7 @@ func (repo ThreadRepo) Vote(thread *domain.Thread, vote *domain.Vote) (*domain.T
 	return &updThread, nil
 }
 
-func (repo ThreadRepo) GetPosts(threadId int64, limit int64, since string, desc bool, sort string) ([]domain.Post, error) {
+func (repo ThreadRepo) GetPosts(threadId int32, limit int64, since string, desc bool, sort string) ([]domain.Post, error) {
 	var query string
 	params := make([]interface{}, 0, 3)
 
@@ -200,7 +200,7 @@ func (repo ThreadRepo) GetPosts(threadId int64, limit int64, since string, desc 
 	return posts, nil
 }
 
-func (repo ThreadRepo) UpdateThread(threadId int64, upd domain.ThreadUpdate) (*domain.Thread, error) {
+func (repo ThreadRepo) UpdateThread(threadId int32, upd domain.ThreadUpdate) (*domain.Thread, error) {
 	query := `UPDATE thread
 			  SET title = $1, message = $2
 			  Where id = $3

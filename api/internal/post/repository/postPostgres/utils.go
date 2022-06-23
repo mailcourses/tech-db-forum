@@ -11,7 +11,7 @@ import (
 	"time"
 )
 
-func prepareQueryWithArgs(posts []domain.Post, query string, fields int, threadId int64, forum string, pool *pgxpool.Pool) (string, []interface{}, error) {
+func prepareQueryWithArgs(posts []domain.Post, query string, fields int, threadId int32, forum string, pool *pgxpool.Pool) (string, []interface{}, error) {
 	totalPosts := len(posts)
 	totalParams := totalPosts * fields
 	params := make([]interface{}, 0, totalParams)
@@ -22,7 +22,7 @@ func prepareQueryWithArgs(posts []domain.Post, query string, fields int, threadI
 
 	for i := 0; i < totalParams; i++ {
 		if i < totalPosts {
-			if err := checkCurrPost(posts[i], pool); err != nil {
+			if err := checkCurrPost(posts[i], pool, threadId); err != nil {
 				return "", nil, err
 			}
 		}
@@ -39,7 +39,7 @@ func prepareQueryWithArgs(posts []domain.Post, query string, fields int, threadI
 	return query, params, nil
 }
 
-func setCurrParam(i int, fields int, posts []domain.Post, forum string, threadId int64, createdTime time.Time) (interface{}, error) {
+func setCurrParam(i int, fields int, posts []domain.Post, forum string, threadId int32, createdTime time.Time) (interface{}, error) {
 	number := int(i / fields)
 
 	switch i % fields {
@@ -77,7 +77,11 @@ func setCurrQuery(query *string, i int, fields int, totalParams int, lastSymbol 
 	}
 }
 
-func checkCurrPost(currPost domain.Post, pool *pgxpool.Pool) error {
+func checkCurrPost(currPost domain.Post, pool *pgxpool.Pool, threadId int32) error {
+	if currPost.Thread == 0 {
+		currPost.Thread = threadId
+	}
+
 	author := currPost.Author
 	parent := currPost.Parent
 	thread := currPost.Thread
@@ -98,64 +102,9 @@ func checkCurrPost(currPost domain.Post, pool *pgxpool.Pool) error {
 		return &postErrors.PostErrorParentIdNotExist{Err: fmt.Sprint(parent)}
 	}
 
-	if thread != 0 && parentThread != thread {
+	if parentThread != thread {
 		return &postErrors.PostErrorParentHaveAnotherThread{Err: fmt.Sprint(thread)}
 	}
 
 	return nil
 }
-
-//func makeMultiplyQuery(query string, elements int, fields int) string {
-//	lastSymbol := "("
-//	query += lastSymbol
-//	for i := 1; i <= elements*fields; i++ {
-//		query += "$" + fmt.Sprint(i)
-//		if i%fields == 0 {
-//			if i != elements*fields {
-//				lastSymbol = "),("
-//			} else {
-//				lastSymbol = ") RETURNING id, parent, author, message, is_edited, forum, thread, created;"
-//			}
-//			query += lastSymbol
-//		} else {
-//			query += ", "
-//		}
-//	}
-//	return query
-//}
-//
-//func makeArgsForPosts(posts []domain.Post, fields int, forum string, threadId int64) ([]interface{}, error) {
-//	totalParams := len(posts) * fields
-//	params := make([]interface{}, 0, totalParams)
-//
-//	createdTime := time.Now()
-//	for i := 0; i < totalParams; i++ {
-//		number := int(i / fields)
-//
-//		var currParam interface{}
-//
-//		switch i % fields {
-//		case 0:
-//			currParam = posts[number].Parent
-//
-//		case 1:
-//			currParam = posts[number].Author
-//		case 2:
-//			currParam = posts[number].Message
-//		case 3:
-//			currParam = posts[number].IsEdited
-//		case 4:
-//			currParam = forum
-//		case 5:
-//			currParam = threadId
-//		case 6:
-//			currParam = createdTime
-//		default:
-//			return nil, errors.New("unknown field")
-//		}
-//
-//		params = append(params, currParam)
-//	}
-//
-//	return params, nil
-//}

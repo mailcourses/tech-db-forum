@@ -25,14 +25,14 @@ type ThreadRepo interface {
 	SelectBySlug(slug string) (*Thread, error)
 	Create(thread Thread) (*Thread, error)
 	Vote(thread *Thread, vote *Vote) (*Thread, error)
-	GetPosts(threadId int64, limit int64, since string, desc bool, sort string) ([]Post, error)
-	UpdateThread(threadId int64, upd ThreadUpdate) (*Thread, error)
+	GetPosts(threadId int32, limit int64, since string, desc bool, sort string) ([]Post, error)
+	UpdateThread(threadId int32, upd ThreadUpdate) (*Thread, error)
 }
 
 type PostRepo interface {
 	SelectById(id int64, params PostParams) (*PostFull, error)
 	UpdateMsg(id int64, postUpdate PostUpdate, isEdited bool) (*Post, error)
-	CreatePosts(posts []Post, forum string, threadId int64) ([]Post, error)
+	CreatePosts(posts []Post, forum string, threadId int32) ([]Post, error)
 }
 
 type ServiceRepo interface {

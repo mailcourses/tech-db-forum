@@ -1,10 +1,8 @@
 package postPostgres
 
 import (
-	"fmt"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/mailcourses/technopark-dbms-forum/api/internal/domain"
-	postErrors "github.com/mailcourses/technopark-dbms-forum/api/internal/post"
 	"golang.org/x/net/context"
 	"strings"
 )
@@ -81,7 +79,7 @@ func (repo PostRepo) UpdateMsg(id int64, postUpdate domain.PostUpdate, isEdited 
 	return &updated, nil
 }
 
-func (repo PostRepo) CreatePosts(posts []domain.Post, forum string, threadId int64) ([]domain.Post, error) {
+func (repo PostRepo) CreatePosts(posts []domain.Post, forum string, threadId int32) ([]domain.Post, error) {
 	elements := len(posts)
 
 	query := `INSERT INTO Post (parent, author, message, is_edited, forum, thread, created)
@@ -103,46 +101,20 @@ func (repo PostRepo) CreatePosts(posts []domain.Post, forum string, threadId int
 
 	for i := 0; rows.Next(); i++ {
 		err = rows.Scan(domain.GetPostFields(&result[i])...)
-		author := result[i].Author
-		parent := result[i].Parent
-		thread := result[i].Thread
-
-		authorCheckQuery := `select id from users where lower(users.nickname) = $1;`
-		authorId := 0
-		if err := repo.pool.QueryRow(context.Background(), authorCheckQuery, strings.ToLower(author)).Scan(&authorId); err != nil {
-			fmt.Println("here=", err)
-			return nil, &postErrors.PostErrorAuthorNotExist{Err: author}
-		}
-
-		if parent == 0 {
-			continue
-		}
-
-		parentCheckQuery := `select thread from post where id = $1;`
-		parentThread := int32(0)
-		if err := repo.pool.QueryRow(context.Background(), parentCheckQuery, parent).Scan(&parentThread); err != nil {
-			return nil, &postErrors.PostErrorParentIdNotExist{Err: fmt.Sprint(parent)}
-		}
-
-		if parentThread != result[i].Thread {
-			return nil, &postErrors.PostErrorParentHaveAnotherThread{Err: fmt.Sprint(thread)}
-		}
 
 		if err != nil {
 			return nil, err
 		}
+
 	}
 
-	//if rows.Err() != nil {
-	//	switch rows.Err().Error() {
-	//	case errorThreadsNotEquals:
-	//		return nil, &postErrors.PostErrorParentHaveAnotherThread{Err: rows.Err().Error()}
-	//	case errorParentIsNotExist:
-	//		return nil, &postErrors.PostErrorParentIdNotExist{Err: rows.Err().Error()}
-	//	default:
-	//		return nil, &postErrors.PostErrorAuthorNotExist{Err: rows.Err().Error()}
-	//	}
-	//}
+	if len(result) > 0 {
+		forumToIncPosts := result[0].Forum
+		updForumPostsThreads := `UPDATE forum set posts = posts + $1 where lower(forum.slug) = $2;`
+		if _, err := repo.pool.Exec(context.Background(), updForumPostsThreads, elements, strings.ToLower(forumToIncPosts)); err != nil {
+			return nil, err
+		}
+	}
 
 	return result, nil
 }

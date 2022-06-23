@@ -15,6 +15,8 @@ func NewForumRepo(pool *pgxpool.Pool) domain.ForumRepo {
 	return ForumRepo{pool: pool}
 }
 
+//todo доделать каунтер постов и тредов в форуме
+
 func (repo ForumRepo) SelectById(id int64) (*domain.Forum, error) {
 	query := `SELECT title, user_nickname, slug, posts, threads FROM Forum WHERE id = $1`
 	holder := domain.Forum{}
